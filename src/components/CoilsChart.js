@@ -4,6 +4,8 @@ import generateBtcPrice, { generateSimplyXY } from "../util/generateBtcPrice";
 const btcPrice = 11434.1;
 const generator = generateBtcPrice(btcPrice);
 
+// https://observablehq.com/@dan-goldberg/real-time-targeting-using-social-listening-cost-analysis
+
 const generatePrice = (size) => {
   const data = [];
   for (let i = 0; i < size; i++) {
