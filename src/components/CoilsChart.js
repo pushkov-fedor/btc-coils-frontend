@@ -4,6 +4,14 @@ import generateBtcPrice, { generateSimplyXY } from "../util/generateBtcPrice";
 const btcPrice = 11434.1;
 const generator = generateBtcPrice(btcPrice);
 
+const generatePrice = (size) => {
+  const data = [];
+  for (let i = 0; i < size; i++) {
+    data.push(generator.next().value);
+  }
+  return data;
+};
+
 const generateBarChartData = (maxValue) => {
   const data = [];
   let charCode = "A".charCodeAt(0);
@@ -22,21 +30,22 @@ export default function CoilsChart() {
     const margin = { top: 20, right: 0, bottom: 30, left: 40 };
     const height = 500;
     const width = 500;
-    const data = generateBarChartData(120);
-
+    const data = generatePrice(50);
+    console.log(data);
     const svg = d3
       .select("#coils-chart")
       .append("svg")
+      .attr("width", width)
+      .attr("height", height)
       .attr("viewBox", [0, 0, width, height]);
 
     const x = d3
-      .scaleBand()
-      .domain(data.map((d) => d.name))
-      .range([margin.left, width - margin.right])
-      .padding(0.1);
+      .scaleTime()
+      .domain(d3.extent(data, (d) => d.time))
+      .range([margin.left, width - margin.right]);
     const y = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d.value)])
+      .domain([btcPrice - 250, d3.max(data, (d) => d.price)])
       .nice()
       .range([height - margin.bottom, margin.top]);
 
@@ -44,24 +53,31 @@ export default function CoilsChart() {
       .append("g")
       .attr("class", "x-axis")
       .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(d3.axisBottom(x).tickSizeOuter(0));
+      .call(
+        d3
+          .axisBottom(x)
+          .ticks(5)
+          .tickSizeOuter(0)
+          .tickFormat(d3.timeFormat("%H:%M:%S"))
+      );
     const yAxis = svg
       .append("g")
       .attr("transform", `translate(${margin.left}, 0)`)
       .call(d3.axisLeft(y))
       .call((g) => g.select(".domain").remove());
 
-    svg
-      .append("g")
-      .attr("class", "bars")
-      .attr("fill", "green")
-      .selectAll("rect")
-      .data(data)
-      .join("rect")
-      .attr("x", (d) => x(d.name))
-      .attr("y", (d) => y(d.value))
-      .attr("height", (d) => y(0) - y(d.value))
-      .attr("width", x.bandwidth());
+    const line = d3
+      .line()
+      .x((d) => x(d.time))
+      .y((d) => y(d.price));
+
+    const lineChart = svg
+      .append("path")
+      .classed("line", true)
+      .datum(data)
+      .attr("d", line)
+      .attr("fill", "none")
+      .attr("stroke", "green");
 
     const extent = [
       [margin.left, margin.top],
@@ -72,22 +88,33 @@ export default function CoilsChart() {
       d3
         .zoom()
         .scaleExtent([1, 8])
-        .translateExtent(extent)
-        .extent(extent)
+        .extent([
+          [margin.left, 0],
+          [width - margin.right, height],
+        ])
+        .translateExtent([
+          [margin.left, -Infinity],
+          [width - margin.right, Infinity],
+        ])
         .on("zoom", zoomed)
     );
     function zoomed() {
       const event = d3.event;
-      x.range(
-        [margin.left, width - margin.right].map((d) =>
-          event.transform.applyX(d)
-        )
+      const xz = event.transform.rescaleX(x);
+      lineChart.attr(
+        "d",
+        d3
+          .line()
+          .x((d) => xz(d.time))
+          .y((d) => y(d.price))
       );
-      svg
-        .selectAll(".bars rect")
-        .attr("x", (d) => x(d.name))
-        .attr("width", x.bandwidth());
-      svg.selectAll(".x-axis").call(d3.axisBottom(x).tickSizeOuter(0));
+      xAxis.call(
+        d3
+          .axisBottom(xz)
+          .ticks(5)
+          .tickSizeOuter(0)
+          .tickFormat(d3.timeFormat("%H:%M:%S"))
+      );
     }
   }, []);
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
