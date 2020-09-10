@@ -14,11 +14,13 @@ const generatePrice = (size) => {
   return data;
 };
 
+const ticksNumber = 10;
+
 export default function CoilsChart() {
   useEffect(() => {
     const margin = { top: 20, right: 0, bottom: 30, left: 40 };
-    const height = 500;
-    const width = 500;
+    const height = 1000;
+    const width = 1500;
     const data = generatePrice(50);
     const svg = d3
       .select("#coils-chart")
@@ -30,7 +32,8 @@ export default function CoilsChart() {
     const x = d3
       .scaleTime()
       .domain(d3.extent(data, (d) => d.time))
-      .range([margin.left, width - margin.right]);
+      .range([margin.left, width - margin.right])
+      .nice();
     const y = d3
       .scaleLinear()
       .domain([btcPrice - 250, d3.max(data, (d) => d.price)])
@@ -44,7 +47,7 @@ export default function CoilsChart() {
       .call(
         d3
           .axisBottom(x)
-          .ticks(5)
+          .ticks(ticksNumber)
           .tickSizeOuter(0)
           .tickFormat(d3.timeFormat("%H:%M:%S"))
       );
@@ -126,9 +129,9 @@ export default function CoilsChart() {
       xAxis.call(
         d3
           .axisBottom(xz)
-          .ticks(5)
+          .ticks(ticksNumber)
           .tickSizeOuter(0)
-          .tickFormat(d3.timeFormat("%H:%M:%S"))
+          .tickFormat(d3.timeFormat("%M:%S"))
       );
       yAxis.call(d3.axisLeft(yz));
     };
