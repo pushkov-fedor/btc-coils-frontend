@@ -6,16 +6,16 @@ const URL = "https://cryptobackend.avocadoonline.company";
 
 const getPeriodUtc = () => {
   const endPeriodDate = new Date();
-  const startPeriodDate = new Date(endPeriodDate.getTime() - 60 * 1000);
+  const startPeriodDate = new Date(endPeriodDate.getTime() - 60 * 60 * 1000);
   const endDay = endPeriodDate.getUTCDate();
-  const endMonth = endPeriodDate.getUTCMonth() + 1;
-  const endYear = endPeriodDate.getUTCFullYear();
+  const endMonth = String(endPeriodDate.getUTCMonth() + 1).padStart(2, "0");
+  const endYear = String(endPeriodDate.getUTCFullYear()).substr(2);
   const endHour = endPeriodDate.getUTCHours();
   const endMinute = endPeriodDate.getUTCMinutes();
   const endSecond = endPeriodDate.getUTCSeconds();
   const startDay = startPeriodDate.getUTCDate();
-  const startMonth = startPeriodDate.getUTCMonth() + 1;
-  const startYear = startPeriodDate.getUTCFullYear();
+  const startMonth = String(startPeriodDate.getUTCMonth() + 1).padStart(2, "0");
+  const startYear = String(startPeriodDate.getUTCFullYear()).substr(2);
   const startHour = startPeriodDate.getUTCHours();
   const startMinute = startPeriodDate.getUTCMinutes();
   const startSecond = startPeriodDate.getUTCSeconds();
@@ -25,6 +25,10 @@ const getPeriodUtc = () => {
   };
 };
 getPeriodUtc();
+
+fetch(
+  "https://cryptobackend.avocadoonline.company/core/rateData/getBtcPriceForPeriod?provider=cryptonator&startPeriod=10.09.20%2023:00:00&endPeriod=10.09.20%2023:59:00"
+);
 
 export default function CoilsChart() {
   const period = getPeriodUtc();
