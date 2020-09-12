@@ -1,68 +1,223 @@
 import React, { useEffect } from "react";
 import * as d3 from "d3";
-import generateBtcPrice from "../util/generateBtcPrice";
-const btcPrice = 11434.1;
-const generator = generateBtcPrice(btcPrice);
+
+const ticksNumber = 10;
+const URL = "https://cryptobackend.avocadoonline.company";
+
+const getPeriodUtc = () => {
+  const endPeriodDate = new Date();
+  const startPeriodDate = new Date(endPeriodDate.getTime() - 60 * 60 * 1000);
+  const endDay = String(endPeriodDate.getUTCDate()).padStart(2, "0");
+  const endMonth = String(endPeriodDate.getUTCMonth() + 1).padStart(2, "0");
+  const endYear = String(endPeriodDate.getUTCFullYear()).substr(2);
+  const endHour = String(endPeriodDate.getUTCHours()).padStart(2, "0");
+  const endMinute = String(endPeriodDate.getUTCMinutes()).padStart(2, "0");
+  const endSecond = String(endPeriodDate.getUTCSeconds()).padStart(2, "0");
+  const startDay = String(startPeriodDate.getUTCDate()).padStart(2, "0");
+  const startMonth = String(startPeriodDate.getUTCMonth() + 1).padStart(2, "0");
+  const startYear = String(startPeriodDate.getUTCFullYear()).substr(2);
+  const startHour = String(startPeriodDate.getUTCHours()).padStart(2, "0");
+  const startMinute = String(startPeriodDate.getUTCMinutes()).padStart(2, "0");
+  const startSecond = String(startPeriodDate.getUTCSeconds()).padStart(2, "0");
+  return {
+    startPeriod: `${startDay}.${startMonth}.${startYear} ${startHour}:${startMinute}:${startSecond}`,
+    endPeriod: `${endDay}.${endMonth}.${endYear} ${endHour}:${endMinute}:${endSecond}`,
+  };
+};
 
 export default function CoilsChart() {
+  const period = getPeriodUtc();
+  console.log(period);
   useEffect(() => {
-    const data = [];
-    const width = 500;
-    const height = 500;
-    let globalX = 0;
-    const duration = 500;
-    const max = 500;
-    const step = 1;
-    const chart = d3
-      .select("#coils-chart")
-      .append("svg")
-      .attr("width", width + 50)
-      .attr("height", height + 50)
-      .style("background", "#f4f4f4")
-      .call(
-        d3.zoom().on("zoom", function () {
-          chart.attr("transform", d3.event.transform);
-        })
+    fetch(
+      `${URL}/core/rateData/getBtcPriceForPeriod?provider=cryptonator&startPeriod=${period.startPeriod}&endPeriod=${period.endPeriod}`
+    )
+      .then((response) => {
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+      })
+      .then(({ response }) =>
+        response.map((row) => ({
+          price: row.currentPrice,
+          time: new Date(row.timestamp * 1000),
+        }))
       )
-      .append("g");
-    const x = d3.scaleLinear().domain([0, 5000]).range([0, 500]);
-    const y = d3
-      .scaleLinear()
-      .domain([btcPrice - 500, btcPrice + 500])
-      .range([500, 0]);
+      .then((data) => {
+        const margin = { top: 20, right: 0, bottom: 30, left: 40 };
+        const height = 1000;
+        const width = 1500;
+        const svg = d3
+          .select("#coils-chart")
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height)
+          .attr("viewBox", [0, 0, width, height]);
+        const x = d3
+          .scaleTime()
+          .domain(d3.extent(data, (d) => d.time))
+          .range([margin.left, width - margin.right])
+          .nice();
+        const y = d3
+          .scaleLinear()
+          .domain([
+            d3.min(data, (d) => d.price) - 200,
+            d3.max(data, (d) => d.price) + 200,
+          ])
+          .nice()
+          .range([height - margin.bottom, margin.top]);
 
-    const line = d3
-      .line()
-      .x((d) => x(d.time))
-      .y((d) => y(d.price));
+        const xAxis = svg
+          .append("g")
+          .attr("class", "x-axis")
+          .attr("transform", `translate(0,${height - margin.bottom})`)
+          .call(
+            d3
+              .axisBottom(x)
+              .ticks(ticksNumber)
+              .tickSizeOuter(0)
+              .tickFormat(d3.timeFormat("%H:%M:%S"))
+          );
+        const yAxis = svg
+          .append("g")
+          .attr("transform", `translate(${margin.left}, 0)`)
+          .call(d3.axisLeft(y))
+          .call((g) => g.select(".domain").remove());
+        const gridY = svg
+          .append("g")
+          .attr("class", "grid")
+          .attr("transform", `translate(0, ${height - margin.bottom})`)
+          .call(
+            d3
+              .axisBottom(x)
+              .ticks(ticksNumber)
+              .tickFormat(" ")
+              .tickSize(margin.top + margin.bottom - height)
+          );
+        const gridX = svg
+          .append("g")
+          .attr("class", "grid")
+          .call(
+            d3.axisLeft(y).ticks(ticksNumber).tickFormat(" ").tickSize(-width)
+          );
+        const lastPriceGridLine = svg
+          .append("g")
+          .attr("class", "grid")
+          .append("line")
+          .attr("x1", x(data[data.length - 1].time))
+          .attr("y1", margin.top)
+          .attr("x2", x(data[data.length - 1].time))
+          .attr("y2", height - margin.bottom);
 
-    const xAxis = d3.axisBottom().scale(x);
-    const axisX = chart
-      .append("g")
-      .attr("transform", "translate(25,500)")
-      .call(xAxis);
+        const line = d3
+          .line()
+          .x((d) => x(d.time))
+          .y((d) => y(d.price));
 
-    const path = chart.append("path");
-    const tick = () => {
-      const point = generator.next().value;
-      data.push(point);
-      globalX += step;
-      path
-        .datum(data)
-        .attr("d", line)
-        .style("fill", "none")
-        .style("stroke", "green");
-      x.domain([globalX - (max - step), globalX]);
-      axisX.transition().duration(duration).ease(d3.easeLinear, 2).call(xAxis);
+        const lineChart = svg
+          .append("path")
+          .classed("line", true)
+          .datum(data)
+          .attr("d", line)
+          .attr("fill", "none")
+          .attr("stroke", "green");
 
-      path
-        .attr("transform", null)
-        .transition()
-        .duration(duration)
-        .ease(d3.easeLinear, 2)
-        .attr("transform", "translate(" + x(globalX - max) + ")");
-    };
-    setInterval(() => tick(), 100);
+        svg.call(
+          d3
+            .zoom()
+            .scaleExtent([1, 8])
+            .extent([
+              [margin.left, 0],
+              [width - margin.right, height],
+            ])
+            .translateExtent([
+              [margin.left, -Infinity],
+              [width - margin.right, Infinity],
+            ])
+            .on("zoom", zoomed)
+        );
+        let lastEventTransform = null;
+
+        function zoomed() {
+          const event = d3.event;
+          const xz = event.transform.rescaleX(x);
+          const yz = event.transform.rescaleY(y);
+          lastEventTransform = event.transform;
+          updateChart(xz, yz);
+        }
+        const step = width / data.length;
+        let stepReducer = step;
+        const updateData = () => {
+          fetch(`${URL}/core/rateData/getLastBtcPrice?provider=cryptonator`)
+            .then((response) => {
+              if (!response.ok) throw new Error(response.statusText);
+              return response.json();
+            })
+            .then(({ response }) => ({
+              price: response.currentPrice,
+              time: new Date(response.timestamp * 1000),
+            }))
+            .then((value) => {
+              console.log(value);
+              data.push(value);
+              x.domain(d3.extent(data, (d) => d.time)).range([
+                margin.left - stepReducer,
+                width - margin.right,
+              ]);
+              const xz = lastEventTransform
+                ? lastEventTransform.rescaleX(x)
+                : x;
+              const yz = lastEventTransform
+                ? lastEventTransform.rescaleY(y)
+                : y;
+              stepReducer += step;
+              lineChart.datum(data);
+              updateChart(xz, yz);
+              svg.call(
+                d3
+                  .zoom()
+                  .scaleExtent([1, 8])
+                  .translateExtent([
+                    [margin.left - stepReducer, -Infinity],
+                    [width - margin.right, Infinity],
+                  ])
+                  .on("zoom", zoomed)
+              );
+            })
+            .catch((error) => console.error(error));
+        };
+        const updateChart = (xz, yz) => {
+          lineChart.attr(
+            "d",
+            d3
+              .line()
+              .x((d) => xz(d.time))
+              .y((d) => yz(d.price))
+          );
+          xAxis.call(
+            d3
+              .axisBottom(xz)
+              .ticks(ticksNumber)
+              .tickSizeOuter(0)
+              .tickFormat(d3.timeFormat("%H:%M:%S"))
+          );
+          yAxis.call(d3.axisLeft(yz));
+          gridY.call(
+            d3
+              .axisBottom(xz)
+              .ticks(ticksNumber)
+              .tickFormat(" ")
+              .tickSize(margin.top + margin.bottom - height)
+          );
+          gridX.call(
+            d3.axisLeft(yz).ticks(ticksNumber).tickFormat(" ").tickSize(-width)
+          );
+          lastPriceGridLine
+            .attr("x1", xz(data[data.length - 1].time))
+            .attr("x2", xz(data[data.length - 1].time));
+        };
+        setInterval(() => updateData.call(svg.node()), 60 * 1000);
+      })
+      .catch((error) => console.error(error));
   }, []);
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
 }
