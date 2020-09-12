@@ -7,28 +7,23 @@ const URL = "https://cryptobackend.avocadoonline.company";
 const getPeriodUtc = () => {
   const endPeriodDate = new Date();
   const startPeriodDate = new Date(endPeriodDate.getTime() - 60 * 60 * 1000);
-  const endDay = endPeriodDate.getUTCDate();
+  const endDay = String(endPeriodDate.getUTCDate()).padStart(2, "0");
   const endMonth = String(endPeriodDate.getUTCMonth() + 1).padStart(2, "0");
   const endYear = String(endPeriodDate.getUTCFullYear()).substr(2);
-  const endHour = endPeriodDate.getUTCHours();
-  const endMinute = endPeriodDate.getUTCMinutes();
-  const endSecond = endPeriodDate.getUTCSeconds();
-  const startDay = startPeriodDate.getUTCDate();
+  const endHour = String(endPeriodDate.getUTCHours()).padStart(2, "0");
+  const endMinute = String(endPeriodDate.getUTCMinutes()).padStart(2, "0");
+  const endSecond = String(endPeriodDate.getUTCSeconds()).padStart(2, "0");
+  const startDay = String(startPeriodDate.getUTCDate()).padStart(2, "0");
   const startMonth = String(startPeriodDate.getUTCMonth() + 1).padStart(2, "0");
   const startYear = String(startPeriodDate.getUTCFullYear()).substr(2);
-  const startHour = startPeriodDate.getUTCHours();
-  const startMinute = startPeriodDate.getUTCMinutes();
-  const startSecond = startPeriodDate.getUTCSeconds();
+  const startHour = String(startPeriodDate.getUTCHours()).padStart(2, "0");
+  const startMinute = String(startPeriodDate.getUTCMinutes()).padStart(2, "0");
+  const startSecond = String(startPeriodDate.getUTCSeconds()).padStart(2, "0");
   return {
     startPeriod: `${startDay}.${startMonth}.${startYear} ${startHour}:${startMinute}:${startSecond}`,
     endPeriod: `${endDay}.${endMonth}.${endYear} ${endHour}:${endMinute}:${endSecond}`,
   };
 };
-getPeriodUtc();
-
-fetch(
-  "https://cryptobackend.avocadoonline.company/core/rateData/getBtcPriceForPeriod?provider=cryptonator&startPeriod=10.09.20%2023:00:00&endPeriod=10.09.20%2023:59:00"
-);
 
 export default function CoilsChart() {
   const period = getPeriodUtc();
@@ -187,7 +182,8 @@ export default function CoilsChart() {
                   ])
                   .on("zoom", zoomed)
               );
-            });
+            })
+            .catch((error) => console.error(error));
         };
         const updateChart = (xz, yz) => {
           lineChart.attr(
@@ -220,7 +216,8 @@ export default function CoilsChart() {
             .attr("x2", xz(data[data.length - 1].time));
         };
         setInterval(() => updateData.call(svg.node()), 60 * 1000);
-      });
+      })
+      .catch((error) => console.error(error));
   }, []);
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
 }
