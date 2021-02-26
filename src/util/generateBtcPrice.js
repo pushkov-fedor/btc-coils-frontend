@@ -1,4 +1,4 @@
-export default function* (currentPrice) {
+function* createCoilsGenerator(currentPrice) {
   let time = new Date();
   while (true) {
     yield { price: currentPrice + (Math.random() - 0.5) * 200, time };
@@ -6,8 +6,12 @@ export default function* (currentPrice) {
   }
 }
 
-export function* generateSimplyXY(maxX, maxY) {
-  while (true) {
-    yield { x: Math.random() * maxX, y: Math.random() * maxY };
+export default (currentPrice, numberOfItems) => {
+  const data = []
+  const generator = createCoilsGenerator(currentPrice)
+  for (let i = 0; i < numberOfItems; i++){
+    const priceItem = generator.next().value;
+    data.push(priceItem)
   }
+  return [data, generator]
 }
