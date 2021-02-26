@@ -7,6 +7,8 @@ import {
   createScaleTimeX,
   createAxisLinearY,
   createAxisTimeX,
+  drawChart,
+  drawCoils,
 } from "../util/graphics";
 import { scaleLinear } from "d3";
 
@@ -40,19 +42,9 @@ export default function CoilsChart() {
       .attr("transform", `translate(${margin}, ${margin})`)
       .call(yAxis);
 
-    const line = d3
-      .line()
-      .x((d) => xScale(d.time))
-      .y((d) => yScale(d.price));
+    const lineChart = drawChart(xScale, yScale, svg, data, margin);
 
-    const lineChart = svg
-      .append("path")
-      .classed("line", true)
-      .datum(data)
-      .attr("d", line)
-      .attr("fill", "none")
-      .attr("stroke", "green")
-      .attr("transform", `translate(${margin}, ${margin})`);
+    drawCoils(xScale, yScale, svg, data, width, margin);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
