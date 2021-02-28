@@ -59,9 +59,22 @@ export const TODO = (data, width, margin, yScale, svg) => {
 };
 
 export const drawCoils = (yScale, svg, data, width, offsetIndex, margin) => {
-  // TODO(data);
-  console.log(data);
-  const coilsDiffDivider = 10;
+  const scaler = 7;
+  const scaledData = data
+    .map((d, i, arr) => {
+      if (i !== arr.length - 1) {
+        const next = arr[i + 1];
+        return _.range(
+          d.price,
+          next.price,
+          (next.price - d.price) / scaler
+        ).map((d) => ({ price: d }));
+      }
+      return [];
+    })
+    .flat();
+
+  const coilsDiffDivider = 70;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
   const coilsStep = (maxPrice - minPrice) / coilsDiffDivider;
@@ -72,17 +85,18 @@ export const drawCoils = (yScale, svg, data, width, offsetIndex, margin) => {
       coils: [],
     });
   }
-  data.forEach((p) => {
+  scaledData.forEach((p) => {
     const coilBox = coilBoxes.find(
       (b) => b.startPrice <= p.price && p.price < b.startPrice + coilsStep
     );
     coilBox.coils.push(p);
   });
   const maxCoilsInTheBox = d3.max(coilBoxes, (d) => d.coils.length);
+
   return svg
     .append("g")
     .selectAll("line")
-    .data(data)
+    .data(scaledData)
     .enter()
     .append("line")
     .attr("x1", (d) => {
