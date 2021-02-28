@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import moment from "moment";
+import _ from "lodash";
 
 export const createScaleTimeX = (data, width) => {
   return d3
@@ -43,7 +44,23 @@ export const drawChart = (xScale, yScale, svg, data, margin) => {
     .attr("transform", `translate(${margin}, ${margin})`);
 };
 
-export const drawCoils = (xScale, yScale, svg, data, width, margin) => {
+export const TODO = (data, width, margin, yScale, svg) => {
+  const secondsPerCoil = 60;
+  const coilBoxesX = [];
+
+  const coilChunks = _.chunk(data, secondsPerCoil);
+
+  const coilWidth = width / coilChunks.length;
+  const offset = 0;
+
+  coilChunks.forEach((data, i) =>
+    drawCoils(yScale, svg, data, coilWidth, i, margin)
+  );
+};
+
+export const drawCoils = (yScale, svg, data, width, offsetIndex, margin) => {
+  // TODO(data);
+  console.log(data);
   const coilsDiffDivider = 10;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
@@ -73,7 +90,7 @@ export const drawCoils = (xScale, yScale, svg, data, width, margin) => {
         (b) => b.startPrice <= d.price && d.price < b.startPrice + coilsStep
       );
       const w = (width / maxCoilsInTheBox) * coilBox.coils.length;
-      return width / 2 - w / 2;
+      return width / 2 - w / 2 + offsetIndex * width;
     })
     .attr("y1", (d) => yScale(d.price))
     .attr("x2", (d) => {
@@ -81,7 +98,7 @@ export const drawCoils = (xScale, yScale, svg, data, width, margin) => {
         (b) => b.startPrice <= d.price && d.price < b.startPrice + coilsStep
       );
       const w = (width / maxCoilsInTheBox) * coilBox.coils.length;
-      return width / 2 + w / 2;
+      return width / 2 + w / 2 + offsetIndex * width;
     })
     .attr("y2", (d) => yScale(d.price))
     .attr("transform", `translate(${margin}, ${margin})`)

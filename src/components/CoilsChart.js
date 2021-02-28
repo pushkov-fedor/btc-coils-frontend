@@ -9,6 +9,7 @@ import {
   createAxisTimeX,
   drawChart,
   drawCoils,
+  TODO,
 } from "../util/graphics";
 import { scaleLinear } from "d3";
 
@@ -44,7 +45,7 @@ export default function CoilsChart() {
 
     const lineChart = drawChart(xScale, yScale, svg, data, margin);
 
-    drawCoils(xScale, yScale, svg, data, width, margin);
+    TODO(data, width, margin, yScale, svg);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
