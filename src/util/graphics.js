@@ -44,7 +44,7 @@ export const drawChart = (xScale, yScale, svg, data, margin) => {
     .attr("transform", `translate(${margin}, ${margin})`);
 };
 
-export const TODO = (data, width, margin, yScale, svg) => {
+export const TODO = (data, width, height, margin, yScale, svg) => {
   const secondsPerCoil = 60;
   const coilBoxesX = [];
 
@@ -54,11 +54,19 @@ export const TODO = (data, width, margin, yScale, svg) => {
   const offset = 0;
 
   coilChunks.forEach((data, i) =>
-    drawCoils(yScale, svg, data, coilWidth, i, margin)
+    drawCoils(yScale, svg, data, coilWidth, height, i, margin)
   );
 };
 
-export const drawCoils = (yScale, svg, data, width, offsetIndex, margin) => {
+export const drawCoils = (
+  yScale,
+  svg,
+  data,
+  width,
+  height,
+  offsetIndex,
+  margin
+) => {
   const scaler = 10;
   const scaledData = data
     .map((d, i, arr) => {
@@ -92,6 +100,17 @@ export const drawCoils = (yScale, svg, data, width, offsetIndex, margin) => {
     coilBox.coils.push(p);
   });
   const maxCoilsInTheBox = d3.max(coilBoxes, (d) => d.coils.length);
+
+  svg
+    .append("g")
+    .append("line")
+    .attr("x1", offsetIndex * width)
+    .attr("y1", 0)
+    .attr("x2", offsetIndex * width)
+    .attr("y2", height)
+    .attr("transform", `translate(${margin}, ${margin})`)
+    .attr("stroke", "black")
+    .style("opacity", "0.2");
 
   return svg
     .append("g")

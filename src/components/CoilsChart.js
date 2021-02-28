@@ -14,7 +14,7 @@ import {
 import { scaleLinear } from "d3";
 
 const currentPrice = 42000;
-const [data, generator] = generateBtcPrice(currentPrice, 900);
+const [data, generator] = generateBtcPrice(currentPrice, 2700);
 
 export default function CoilsChart() {
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function CoilsChart() {
 
     const lineChart = drawChart(xScale, yScale, svg, data, margin);
 
-    TODO(data, width, margin, yScale, svg);
+    TODO(data, width, height, margin, yScale, svg);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
