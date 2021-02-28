@@ -1,9 +1,12 @@
 function* createCoilsGenerator(currentPrice) {
   let time = new Date();
   let iter = 0;
+  let prevPrice = currentPrice;
   while (true) {
-    yield { price: currentPrice + Math.random() * 200, time };
+    const generatedPrice = prevPrice + (Math.random() - 0.5) * 200;
+    yield { price: generatedPrice, time };
     time = new Date(time.getTime() + 1000);
+    prevPrice = generatedPrice;
   }
 }
 

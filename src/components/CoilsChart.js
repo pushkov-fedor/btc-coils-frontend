@@ -14,7 +14,7 @@ import {
 import { scaleLinear } from "d3";
 
 const currentPrice = 42000;
-const [data, generator] = generateBtcPrice(currentPrice, 600);
+const [data, generator] = generateBtcPrice(currentPrice, 900);
 
 export default function CoilsChart() {
   useEffect(() => {
