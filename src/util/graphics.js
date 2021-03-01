@@ -20,7 +20,6 @@ export const createAxisTimeX = (xScale) => {
   return d3
     .axisBottom()
     .scale(xScale)
-    .ticks(d3.timeSecond.every(1))
     .tickFormat((d) => moment(d).format("HH:mm:ss"));
 };
 
@@ -97,6 +96,10 @@ export const drawCoil = (
   const numberOfCoilBoxes = 10;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
+  console.log("height: ", height);
+  height = yScale(minPrice) - yScale(maxPrice);
+  console.log("height: ", height);
+
   const coilBoxStep = +((maxPrice - minPrice) / numberOfCoilBoxes).toFixed(1);
   const coilBoxes = [];
   for (
@@ -113,9 +116,9 @@ export const drawCoil = (
     // bottom line based on coilBox START price
     svg
       .append("line")
-      .attr("x1", 0)
+      .attr("x1", offsetIndex * width)
       .attr("y1", yScale(i))
-      .attr("x2", width)
+      .attr("x2", width + offsetIndex * width)
       .attr("y2", yScale(i))
       .attr("stroke", "purple")
       .attr("transform", `translate(${margin}, ${margin})`);
@@ -123,24 +126,23 @@ export const drawCoil = (
     // top line based on coilBox END price
     svg
       .append("line")
-      .attr("x1", 0)
+      .attr("x1", offsetIndex * width)
       .attr("y1", yScale(i + coilBoxStep))
-      .attr("x2", width)
+      .attr("x2", width + offsetIndex * width)
       .attr("y2", yScale(i + coilBoxStep))
       .attr("stroke", "purple")
       .attr("transform", `translate(${margin}, ${margin})`);
   }
-  // // vertixal ligns divide coils
-  // svg
-  //   .append("g")
-  //   .append("line")
-  //   .attr("x1", (offsetIndex + 1) * width)
-  //   .attr("y1", 0)
-  //   .attr("x2", (offsetIndex + 1) * width)
-  //   .attr("y2", height)
-  //   .attr("transform", `translate(${margin}, ${margin})`)
-  //   .attr("stroke", "black")
-  //   .style("opacity", "0.2");
+  // vertixal ligns divide coils
+  svg
+    .append("g")
+    .append("line")
+    .attr("x1", (offsetIndex + 1) * width)
+    .attr("y1", 0)
+    .attr("x2", (offsetIndex + 1) * width)
+    .attr("y2", height)
+    .attr("transform", `translate(${margin}, ${margin})`)
+    .attr("stroke", "black");
   data.forEach((p) => {
     const coilBox = coilBoxes.find(
       (b, i, arr) =>
@@ -176,7 +178,8 @@ export const drawCoil = (
       return (
         halfBoxWidth -
         (halfBoxWidth * numberOfPriceItemsInCoilBox) /
-          maxNumberOfPriceItemsInCoilBox
+          maxNumberOfPriceItemsInCoilBox +
+        offsetIndex * width
       );
     })
     .attr("y", (coilBox, i) => {
