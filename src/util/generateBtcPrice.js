@@ -18,5 +18,10 @@ export default (currentPrice, numberOfItems) => {
     const priceItem = generator.next().value;
     data.push(priceItem);
   }
-  return [data, generator];
+  return [
+    data.map((priceItem) =>
+      Object.assign({}, priceItem, { price: +priceItem.price.toFixed(1) })
+    ),
+    generator,
+  ];
 };
