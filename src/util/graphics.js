@@ -33,33 +33,33 @@ export const drawChart = (xScale, yScale, svg, data, margin, height) => {
     .x((d) => xScale(d.time))
     .y((d) => yScale(d.price));
 
-  // points on the graph
-  svg
-    .append("g")
-    .selectAll("circle")
-    .data(data)
-    .enter()
-    .append("circle")
-    .attr("cx", (d) => xScale(d.time))
-    .attr("cy", (d) => yScale(d.price))
-    .attr("r", 2)
-    .attr("fill", "black")
-    .attr("transform", `translate(${margin}, ${margin})`);
+  // // points on the graph
+  // svg
+  //   .append("g")
+  //   .selectAll("circle")
+  //   .data(data)
+  //   .enter()
+  //   .append("circle")
+  //   .attr("cx", (d) => xScale(d.time))
+  //   .attr("cy", (d) => yScale(d.price))
+  //   .attr("r", 2)
+  //   .attr("fill", "black")
+  //   .attr("transform", `translate(${margin}, ${margin})`);
 
-  // vertical ligns on the points
-  svg
-    .append("g")
-    .selectAll("line")
-    .data(data)
-    .enter()
-    .append("line")
-    .attr("x1", (d) => xScale(d.time))
-    .attr("y1", 0)
-    .attr("x2", (d) => xScale(d.time))
-    .attr("y2", height)
-    .attr("stroke", "black")
-    .style("opacity", 0.2)
-    .attr("transform", `translate(${margin}, ${margin})`);
+  // // vertical ligns on the points
+  // svg
+  //   .append("g")
+  //   .selectAll("line")
+  //   .data(data)
+  //   .enter()
+  //   .append("line")
+  //   .attr("x1", (d) => xScale(d.time))
+  //   .attr("y1", 0)
+  //   .attr("x2", (d) => xScale(d.time))
+  //   .attr("y2", height)
+  //   .attr("stroke", "black")
+  //   .style("opacity", 0.2)
+  //   .attr("transform", `translate(${margin}, ${margin})`);
 
   return svg
     .append("path")
@@ -73,13 +73,16 @@ export const drawChart = (xScale, yScale, svg, data, margin, height) => {
 
 export const drawCoils = (data, width, height, margin, yScale, svg) => {
   const secondsPerCoil = 60;
+  const totalPriceItems = data.length;
   const coils = _.chunk(data, secondsPerCoil);
 
-  const coilWidth = width / coils.length;
-
-  coils.forEach((data, i) => {
+  coils.forEach((data, i, arr) => {
+    const coilWidth = (width / totalPriceItems) * data.length;
+    const prevCoilWidth =
+      i === 0 ? coilWidth : (width / totalPriceItems) * arr[i - 1].length;
+    console.log("coilWidth: ", coilWidth);
     if (true) {
-      drawCoil(yScale, svg, data, coilWidth, height, i, margin);
+      drawCoil(yScale, svg, data, coilWidth, prevCoilWidth, height, i, margin);
     }
   });
 };
@@ -89,15 +92,31 @@ export const drawCoil = (
   svg,
   data,
   width,
+  prevWidth,
   height,
   offsetIndex,
   margin
 ) => {
-  const numberOfCoilBoxes = 10;
+  const scaler = 5;
+  const scaledData = data
+    .map((d, i, arr) => {
+      if (i !== arr.length - 1) {
+        const next = arr[i + 1];
+        return _.range(
+          d.price,
+          next.price,
+          (next.price - d.price) / scaler
+        ).map((d) => ({ price: d }));
+      }
+      return [];
+    })
+    .flat();
+  data = scaledData;
+  const numberOfCoilBoxes = 25;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
   console.log("height: ", height);
-  height = yScale(minPrice) - yScale(maxPrice);
+  const coilHeight = yScale(minPrice) - yScale(maxPrice);
   console.log("height: ", height);
 
   const coilBoxStep = +((maxPrice - minPrice) / numberOfCoilBoxes).toFixed(1);
@@ -113,33 +132,34 @@ export const drawCoil = (
       coils: [],
     });
 
-    // bottom line based on coilBox START price
-    svg
-      .append("line")
-      .attr("x1", offsetIndex * width)
-      .attr("y1", yScale(i))
-      .attr("x2", width + offsetIndex * width)
-      .attr("y2", yScale(i))
-      .attr("stroke", "purple")
-      .attr("transform", `translate(${margin}, ${margin})`);
+    // // bottom line based on coilBox START price
+    // svg
+    //   .append("line")
+    //   .attr("x1", offsetIndex * width)
+    //   .attr("y1", yScale(i))
+    //   .attr("x2", width + offsetIndex * width)
+    //   .attr("y2", yScale(i))
+    //   .attr("stroke", "purple")
+    //   .attr("transform", `translate(${margin}, ${margin})`);
 
-    // top line based on coilBox END price
-    svg
-      .append("line")
-      .attr("x1", offsetIndex * width)
-      .attr("y1", yScale(i + coilBoxStep))
-      .attr("x2", width + offsetIndex * width)
-      .attr("y2", yScale(i + coilBoxStep))
-      .attr("stroke", "purple")
-      .attr("transform", `translate(${margin}, ${margin})`);
+    // // top line based on coilBox END price
+    // svg
+    //   .append("line")
+    //   .attr("x1", offsetIndex * width)
+    //   .attr("y1", yScale(i + coilBoxStep))
+    //   .attr("x2", width + offsetIndex * width)
+    //   .attr("y2", yScale(i + coilBoxStep))
+    //   .attr("stroke", "purple")
+    //   .attr("transform", `translate(${margin}, ${margin})`);
   }
+
   // vertixal ligns divide coils
   svg
     .append("g")
     .append("line")
-    .attr("x1", (offsetIndex + 1) * width)
+    .attr("x1", (offsetIndex + 1) * prevWidth)
     .attr("y1", 0)
-    .attr("x2", (offsetIndex + 1) * width)
+    .attr("x2", (offsetIndex + 1) * prevWidth)
     .attr("y2", height)
     .attr("transform", `translate(${margin}, ${margin})`)
     .attr("stroke", "black");
@@ -162,7 +182,12 @@ export const drawCoil = (
     (d) => d.coils.length
   );
 
-  const boxHeight = height / numberOfCoilBoxes;
+  const opacityScale = d3
+    .scaleLinear()
+    .domain([0, maxNumberOfPriceItemsInCoilBox])
+    .range([0.2, 1]);
+
+  const boxHeight = coilHeight / numberOfCoilBoxes;
   const boxWidth = width;
 
   console.log("coilBoxes: ", coilBoxes);
@@ -179,20 +204,20 @@ export const drawCoil = (
         halfBoxWidth -
         (halfBoxWidth * numberOfPriceItemsInCoilBox) /
           maxNumberOfPriceItemsInCoilBox +
-        offsetIndex * width
+        offsetIndex * prevWidth
       );
     })
     .attr("y", (coilBox, i) => {
       console.log(coilBox);
       const halfBoxHeight = boxHeight / 2;
       const numberOfPriceItemsInCoilBox = coilBox.coils.length;
-      // return yScale(coilBox.endPrice);
-      return (
-        halfBoxHeight -
-        (halfBoxHeight * numberOfPriceItemsInCoilBox) /
-          maxNumberOfPriceItemsInCoilBox +
-        yScale(coilBox.endPrice)
-      );
+      // return (
+      //   halfBoxHeight -
+      //   (halfBoxHeight * numberOfPriceItemsInCoilBox) /
+      //     maxNumberOfPriceItemsInCoilBox +
+      //   yScale(coilBox.endPrice)
+      // );
+      return yScale(coilBox.endPrice);
     })
     .attr("width", (coilBox) => {
       const numberOfPriceItemsInCoilBox = coilBox.coils.length;
@@ -203,12 +228,16 @@ export const drawCoil = (
     })
     .attr("height", (coilBox) => {
       const numberOfPriceItemsInCoilBox = coilBox.coils.length;
-      return (
-        (boxHeight * numberOfPriceItemsInCoilBox) /
-        maxNumberOfPriceItemsInCoilBox
-      );
+      return boxHeight;
+      // return (
+      //   (boxHeight * numberOfPriceItemsInCoilBox) /
+      //   maxNumberOfPriceItemsInCoilBox
+      // );
     })
     .attr("transform", `translate(${margin}, ${margin})`)
     .style("fill", "black")
-    .style("opacity", 0.5);
+    .style("opacity", (coilBox) => {
+      const numberOfPriceItemsInCoilBox = coilBox.coils.length;
+      return opacityScale(numberOfPriceItemsInCoilBox);
+    });
 };
