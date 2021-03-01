@@ -1,5 +1,6 @@
 function* createCoilsGenerator(currentPrice) {
   let time = new Date();
+  time.setMilliseconds(0);
   let iter = 0;
   let prevPrice = currentPrice;
   while (true) {

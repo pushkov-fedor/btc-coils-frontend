@@ -8,12 +8,12 @@ import {
   createAxisLinearY,
   createAxisTimeX,
   drawChart,
+  drawCoil,
   drawCoils,
-  TODO,
 } from "../util/graphics";
 
 const currentPrice = 42000;
-const [data, generator] = generateBtcPrice(currentPrice, 2800);
+const [data, generator] = generateBtcPrice(currentPrice, 10);
 
 export default function CoilsChart() {
   useEffect(() => {
@@ -42,9 +42,9 @@ export default function CoilsChart() {
       .attr("transform", `translate(${margin}, ${margin})`)
       .call(yAxis);
 
-    const lineChart = drawChart(xScale, yScale, svg, data, margin);
+    const lineChart = drawChart(xScale, yScale, svg, data, margin, height);
 
-    TODO(data, width, height, margin, yScale, svg);
+    drawCoils(data, width, height, margin, yScale, svg);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;

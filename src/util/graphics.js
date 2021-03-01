@@ -6,7 +6,7 @@ export const createScaleTimeX = (data, width) => {
   return d3
     .scaleTime()
     .domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
-    .range([0, width]);
+    .rangeRound([0, width]);
 };
 
 export const createScaleLinearY = (data, height) => {
@@ -20,18 +20,72 @@ export const createAxisTimeX = (xScale) => {
   return d3
     .axisBottom()
     .scale(xScale)
-    .tickFormat((d) => moment(d).format("HH:mm"));
+    .ticks(d3.timeSecond.every(1))
+    .tickFormat((d) => moment(d).format("HH:mm:ss"));
 };
 
 export const createAxisLinearY = (yScale) => {
   return d3.axisLeft().scale(yScale);
 };
 
-export const drawChart = (xScale, yScale, svg, data, margin) => {
+export const drawChart = (xScale, yScale, svg, data, margin, height) => {
   const line = d3
     .line()
     .x((d) => xScale(d.time))
     .y((d) => yScale(d.price));
+
+  // svg
+  // .append("g")
+  // .selectAll("line")
+  // .data(scaledData)
+  // .enter()
+  // .append("line")
+
+  // svg.selectAll("myCircles")
+  //     .data(data)
+  //     .enter()
+  //     .append("circle")
+  //       .attr("fill", "red")
+  //       .attr("stroke", "none")
+  //       .attr("cx", function(d) { return x(d.date) })
+  //       .attr("cy", function(d) { return y(d.value) })
+  //       .attr("r", 3)
+
+  svg
+    .append("g")
+    .selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => xScale(d.time))
+    .attr("cy", (d) => yScale(d.price))
+    .attr("r", 2)
+    .attr("fill", "black")
+    .attr("transform", `translate(${margin}, ${margin})`);
+
+  // svg
+  // .append("g")
+  // .append("line")
+  // .attr("x1", (offsetIndex + 1) * width)
+  // .attr("y1", 0)
+  // .attr("x2", (offsetIndex + 1) * width)
+  // .attr("y2", height)
+  // .attr("transform", `translate(${margin}, ${margin})`)
+  // .attr("stroke", "black")
+  // .style("opacity", "0.2");
+
+  svg
+    .append("g")
+    .selectAll("line")
+    .data(data)
+    .enter()
+    .append("line")
+    .attr("x1", (d) => xScale(d.time))
+    .attr("y1", 0)
+    .attr("x2", (d) => xScale(d.time))
+    .attr("y2", height)
+    .attr("stroke", "black")
+    .attr("transform", `translate(${margin}, ${margin})`);
 
   return svg
     .append("path")
@@ -43,7 +97,7 @@ export const drawChart = (xScale, yScale, svg, data, margin) => {
     .attr("transform", `translate(${margin}, ${margin})`);
 };
 
-export const TODO = (data, width, height, margin, yScale, svg) => {
+export const drawCoils = (data, width, height, margin, yScale, svg) => {
   const secondsPerCoil = 60;
   const coilBoxesX = [];
 
@@ -54,12 +108,12 @@ export const TODO = (data, width, height, margin, yScale, svg) => {
 
   coilChunks.forEach((data, i) => {
     if (data.length === secondsPerCoil) {
-      drawCoils(yScale, svg, data, coilWidth, height, i, margin);
+      drawCoil(yScale, svg, data, coilWidth, height, i, margin);
     }
   });
 };
 
-export const drawCoils = (
+export const drawCoil = (
   yScale,
   svg,
   data,
@@ -68,7 +122,8 @@ export const drawCoils = (
   offsetIndex,
   margin
 ) => {
-  const scaler = 10;
+  const scaler = 1;
+  console.log("data: ", data);
   const scaledData = data
     .map((d, i, arr) => {
       if (i !== arr.length - 1) {
@@ -82,24 +137,27 @@ export const drawCoils = (
       return [];
     })
     .flat();
+  console.log("scaledData: ", scaledData);
 
-  const coilsDiffDivider = 40;
+  const numberOfCoilLevels = 5;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
-  const coilsStep = (maxPrice - minPrice) / coilsDiffDivider;
+  const coilsStep = (maxPrice - minPrice) / numberOfCoilLevels;
   const coilBoxes = [];
   for (let i = minPrice; i <= maxPrice; i += coilsStep) {
     coilBoxes.push({
       startPrice: i,
+      endPrice: i + coilsStep,
       coils: [],
     });
   }
   scaledData.forEach((p) => {
     const coilBox = coilBoxes.find(
-      (b) => b.startPrice <= p.price && p.price < b.startPrice + coilsStep
+      (b) => b.startPrice <= p.price && p.price < b.endPrice
     );
     coilBox.coils.push(p);
   });
+  console.log("coilBoxes: ", coilBoxes);
   const maxCoilsInTheBox = d3.max(coilBoxes, (d) => d.coils.length);
 
   svg
