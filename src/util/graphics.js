@@ -20,8 +20,7 @@ export const createAxisTimeX = (xScale) => {
   return d3
     .axisBottom()
     .scale(xScale)
-    .ticks(10)
-    .tickFormat((d) => moment(d).format("HH:MM"));
+    .tickFormat((d) => moment(d).format("HH:mm"));
 };
 
 export const createAxisLinearY = (yScale) => {
@@ -53,9 +52,11 @@ export const TODO = (data, width, height, margin, yScale, svg) => {
   const coilWidth = width / coilChunks.length;
   const offset = 0;
 
-  coilChunks.forEach((data, i) =>
-    drawCoils(yScale, svg, data, coilWidth, height, i, margin)
-  );
+  coilChunks.forEach((data, i) => {
+    if (data.length === secondsPerCoil) {
+      drawCoils(yScale, svg, data, coilWidth, height, i, margin);
+    }
+  });
 };
 
 export const drawCoils = (
@@ -104,9 +105,9 @@ export const drawCoils = (
   svg
     .append("g")
     .append("line")
-    .attr("x1", offsetIndex * width)
+    .attr("x1", (offsetIndex + 1) * width)
     .attr("y1", 0)
-    .attr("x2", offsetIndex * width)
+    .attr("x2", (offsetIndex + 1) * width)
     .attr("y2", height)
     .attr("transform", `translate(${margin}, ${margin})`)
     .attr("stroke", "black")
