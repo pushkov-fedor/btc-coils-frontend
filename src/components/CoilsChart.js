@@ -13,7 +13,7 @@ import {
 } from "../util/graphics";
 
 const currentPrice = 42000;
-const [data, generator] = generateBtcPrice(currentPrice, 1230);
+const [data, generator] = generateBtcPrice(currentPrice, 60);
 export default function CoilsChart() {
   useEffect(() => {
     const margin = 50;

@@ -94,20 +94,18 @@ export const drawCoils = (
     const coilWidth = (width / totalPriceItems) * data.length;
     const prevCoilWidth =
       i === 0 ? coilWidth : (width / totalPriceItems) * arr[i - 1].length;
-    if (true) {
-      drawCoil(
-        yScale,
-        svg,
-        data,
-        coilWidth,
-        prevCoilWidth,
-        height,
-        i,
-        margin,
-        xUpdateStep,
-        numberOfUpdates
-      );
-    }
+    drawCoil(
+      yScale,
+      svg,
+      data,
+      coilWidth,
+      prevCoilWidth,
+      height,
+      i,
+      margin,
+      xUpdateStep,
+      numberOfUpdates
+    );
   });
 };
 
@@ -192,10 +190,6 @@ export const drawCoil = (
         p.price <=
           b.endPrice + (i === arr.length - 1 ? (maxPrice - minPrice) / 100 : 0)
     );
-    if (!coilBox) {
-      console.log("p: ", p);
-      console.log("coilBoxes: ", coilBoxes);
-    }
     coilBox.coils.push(p);
   });
 
@@ -214,11 +208,13 @@ export const drawCoil = (
 
   return svg
     .append("g")
+    .classed("coil", true)
     .selectAll("rect")
     .data(coilBoxes)
     .enter()
     .append("rect")
-    .attr("x", (coilBox, i) => {
+    .classed("coil-bos", true)
+    .attr("x", (coilBox) => {
       const halfBoxWidth = boxWidth / 2;
       const numberOfPriceItemsInCoilBox = coilBox.coils.length;
       return (
@@ -228,16 +224,7 @@ export const drawCoil = (
         offsetIndex * prevWidth
       );
     })
-    .attr("y", (coilBox, i) => {
-      console.log(coilBox);
-      const halfBoxHeight = boxHeight / 2;
-      const numberOfPriceItemsInCoilBox = coilBox.coils.length;
-      // return (
-      //   halfBoxHeight -
-      //   (halfBoxHeight * numberOfPriceItemsInCoilBox) /
-      //     maxNumberOfPriceItemsInCoilBox +
-      //   yScale(coilBox.endPrice)
-      // );
+    .attr("y", (coilBox) => {
       return yScale(coilBox.endPrice);
     })
     .attr("width", (coilBox) => {
@@ -247,13 +234,8 @@ export const drawCoil = (
         maxNumberOfPriceItemsInCoilBox
       );
     })
-    .attr("height", (coilBox) => {
-      const numberOfPriceItemsInCoilBox = coilBox.coils.length;
+    .attr("height", () => {
       return boxHeight;
-      // return (
-      //   (boxHeight * numberOfPriceItemsInCoilBox) /
-      //   maxNumberOfPriceItemsInCoilBox
-      // );
     })
     .style("fill", "black")
     .style("opacity", (coilBox) => {
