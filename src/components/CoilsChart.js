@@ -21,7 +21,7 @@ export default function CoilsChart() {
     const height = 650 - 2 * margin;
     const xUpdateStep = width / data.length;
     let numberOfUpdates = 0;
-
+    console.log("numberOfUpdates in useEffect: ", numberOfUpdates);
     const svg = d3
       .select("#coils-chart")
       .append("svg")
@@ -55,16 +55,7 @@ export default function CoilsChart() {
       width
     );
 
-    drawCoils(
-      data,
-      width,
-      height,
-      margin,
-      yScale,
-      svg,
-      xUpdateStep,
-      numberOfUpdates
-    );
+    drawCoils(data, width, height, yScale, svg, numberOfUpdates);
 
     setInterval(() => {
       numberOfUpdates++;
@@ -83,7 +74,7 @@ export default function CoilsChart() {
         .x((d) => xScale(d.time))
         .y((d) => yScale(d.price));
       d3.select("#line-chart").datum(data).attr("d", line);
-    }, 100);
+    }, 1000);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;

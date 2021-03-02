@@ -80,10 +80,8 @@ export const drawCoils = (
   data,
   width,
   height,
-  margin,
   yScale,
   svg,
-  xUpdateStep,
   numberOfUpdates
 ) => {
   const secondsPerCoil = 60;
@@ -102,8 +100,6 @@ export const drawCoils = (
       prevCoilWidth,
       height,
       i,
-      margin,
-      xUpdateStep,
       numberOfUpdates
     );
   });
@@ -117,7 +113,6 @@ export const drawCoil = (
   prevWidth,
   height,
   offsetIndex,
-  xUpdateStep,
   numberOfUpdates
 ) => {
   const scaler = 5;
