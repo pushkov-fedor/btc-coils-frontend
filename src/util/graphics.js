@@ -2,24 +2,25 @@ import * as d3 from "d3";
 import moment from "moment";
 import _ from "lodash";
 
-export const createScaleTimeX = (data, width) => {
+export const createScaleTimeX = (data, startRange, endRange) => {
   return d3
     .scaleTime()
     .domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
-    .rangeRound([0, width]);
+    .range([startRange, endRange]);
 };
 
-export const createScaleLinearY = (data, height) => {
+export const createScaleLinearY = (data, startRange, endRange) => {
   return d3
     .scaleLinear()
     .domain([d3.min(data, (d) => d.price), d3.max(data, (d) => d.price)])
-    .range([height, 0]);
+    .range([endRange, startRange]);
 };
 
 export const createAxisTimeX = (xScale) => {
   return d3
     .axisBottom()
     .scale(xScale)
+    .ticks(d3.timeSecond.every(60))
     .tickFormat((d) => moment(d).format("HH:mm:ss"));
 };
 
@@ -27,7 +28,7 @@ export const createAxisLinearY = (yScale) => {
   return d3.axisLeft().scale(yScale);
 };
 
-export const drawChart = (xScale, yScale, svg, data, margin, height) => {
+export const drawChart = (xScale, yScale, svg, data, margin, height, width) => {
   const line = d3
     .line()
     .x((d) => xScale(d.time))
@@ -62,16 +63,29 @@ export const drawChart = (xScale, yScale, svg, data, margin, height) => {
   //   .attr("transform", `translate(${margin}, ${margin})`);
 
   return svg
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("transform", `translate(${margin}, ${margin})`)
     .append("path")
     .classed("line", true)
     .datum(data)
+    .attr("id", "line-chart")
     .attr("d", line)
     .attr("fill", "none")
-    .attr("stroke", "green")
-    .attr("transform", `translate(${margin}, ${margin})`);
+    .attr("stroke", "green");
 };
 
-export const drawCoils = (data, width, height, margin, yScale, svg) => {
+export const drawCoils = (
+  data,
+  width,
+  height,
+  margin,
+  yScale,
+  svg,
+  xUpdateStep,
+  numberOfUpdates
+) => {
   const secondsPerCoil = 60;
   const totalPriceItems = data.length;
   const coils = _.chunk(data, secondsPerCoil);
@@ -80,9 +94,19 @@ export const drawCoils = (data, width, height, margin, yScale, svg) => {
     const coilWidth = (width / totalPriceItems) * data.length;
     const prevCoilWidth =
       i === 0 ? coilWidth : (width / totalPriceItems) * arr[i - 1].length;
-    console.log("coilWidth: ", coilWidth);
     if (true) {
-      drawCoil(yScale, svg, data, coilWidth, prevCoilWidth, height, i, margin);
+      drawCoil(
+        yScale,
+        svg,
+        data,
+        coilWidth,
+        prevCoilWidth,
+        height,
+        i,
+        margin,
+        xUpdateStep,
+        numberOfUpdates
+      );
     }
   });
 };
@@ -95,7 +119,8 @@ export const drawCoil = (
   prevWidth,
   height,
   offsetIndex,
-  margin
+  xUpdateStep,
+  numberOfUpdates
 ) => {
   const scaler = 5;
   const scaledData = data
@@ -115,9 +140,7 @@ export const drawCoil = (
   const numberOfCoilBoxes = 25;
   const minPrice = d3.min(data, (d) => d.price);
   const maxPrice = d3.max(data, (d) => d.price);
-  console.log("height: ", height);
   const coilHeight = yScale(minPrice) - yScale(maxPrice);
-  console.log("height: ", height);
 
   const coilBoxStep = +((maxPrice - minPrice) / numberOfCoilBoxes).toFixed(1);
   const coilBoxes = [];
@@ -161,7 +184,6 @@ export const drawCoil = (
     .attr("y1", 0)
     .attr("x2", (offsetIndex + 1) * prevWidth)
     .attr("y2", height)
-    .attr("transform", `translate(${margin}, ${margin})`)
     .attr("stroke", "black");
   data.forEach((p) => {
     const coilBox = coilBoxes.find(
@@ -190,7 +212,6 @@ export const drawCoil = (
   const boxHeight = coilHeight / numberOfCoilBoxes;
   const boxWidth = width;
 
-  console.log("coilBoxes: ", coilBoxes);
   return svg
     .append("g")
     .selectAll("rect")
@@ -234,7 +255,6 @@ export const drawCoil = (
       //   maxNumberOfPriceItemsInCoilBox
       // );
     })
-    .attr("transform", `translate(${margin}, ${margin})`)
     .style("fill", "black")
     .style("opacity", (coilBox) => {
       const numberOfPriceItemsInCoilBox = coilBox.coils.length;
