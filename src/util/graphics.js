@@ -1,7 +1,6 @@
 import * as d3 from "d3";
 import moment from "moment";
 import _ from "lodash";
-import { selection } from "d3";
 
 export const createScaleTimeX = (data, startRange, endRange) => {
   return d3
@@ -81,7 +80,7 @@ export const getCoilChunks = (secondsPerCoil, data) =>
   _.chunk(data, secondsPerCoil);
 
 export const drawCoilD3 = (coilsSelection, yScale) => {
-  const coilBoxes = coilsSelection
+  coilsSelection
     .selectAll("rect")
     .data((data, i) => {
       const { priceItems, coilWidth } = data;
