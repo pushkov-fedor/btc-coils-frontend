@@ -10,10 +10,14 @@ import {
   drawChart,
   drawCoil,
   drawCoils,
+  getCoilChunks,
+  drawCoilD3,
 } from "../util/graphics";
 
 const currentPrice = 42000;
-const [data, generator] = generateBtcPrice(currentPrice, 60);
+const numberOfPriceItems = 1300;
+const priceItemsPerCoil = 60;
+const [data, generator] = generateBtcPrice(currentPrice, numberOfPriceItems);
 export default function CoilsChart() {
   useEffect(() => {
     const margin = 50;
@@ -21,7 +25,6 @@ export default function CoilsChart() {
     const height = 650 - 2 * margin;
     const xUpdateStep = width / data.length;
     let numberOfUpdates = 0;
-    console.log("numberOfUpdates in useEffect: ", numberOfUpdates);
     const svg = d3
       .select("#coils-chart")
       .append("svg")
@@ -55,12 +58,54 @@ export default function CoilsChart() {
       width
     );
 
-    drawCoils(data, width, height, yScale, svg, numberOfUpdates);
+    const totalPriceItems = data.length;
+    let coils = getCoilChunks(priceItemsPerCoil, data).map((coil) =>
+      Object.assign(
+        {},
+        {
+          coilWidth: (width / totalPriceItems) * coil.length,
+          priceItems: coil,
+        }
+      )
+    );
+    const coilsContainer = svg
+      .append("svg")
+      .classed("coils-container", true)
+      .attr("width", width)
+      .attr("height", height)
+      .attr("transform", `translate(${margin}, ${margin})`);
+
+    d3.select(".coils-container")
+      .selectAll("g")
+      .data(coils)
+      .enter()
+      .append("g")
+      .attr("transform", (d, i) => {
+        const { priceItems } = d;
+        const coilWidth = (width / totalPriceItems) * priceItems.length;
+        const prevCoilWidth =
+          i === 0
+            ? coilWidth
+            : (width / totalPriceItems) * coils[i - 1].priceItems.length;
+        return `translate(${i * prevCoilWidth}, 0)`;
+      })
+      .classed("coil", true)
+      .call(drawCoilD3, yScale);
+    // drawCoils(data, width, height, yScale, svg, numberOfUpdates);
 
     setInterval(() => {
       numberOfUpdates++;
       const newPriceItem = generator.next().value;
       data.push(newPriceItem);
+      coils = data.map((coil) =>
+        Object.assign(
+          {},
+          {
+            coilWidth: (width / totalPriceItems) * coil.length,
+            priceItems: coil,
+          }
+        )
+      );
 
       const xScale = createScaleTimeX(
         data,
