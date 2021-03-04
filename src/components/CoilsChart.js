@@ -90,34 +90,6 @@ export default function CoilsChart() {
       numberOfPriceItemsPerCoil
     );
 
-    // const totalPriceItems = data.length;
-    // let coils = getCoilChunks(priceItemsPerCoil, data).map((coil) =>
-    //   Object.assign(
-    //     {},
-    //     {
-    //       coilWidth: 220,
-    //       priceItems: coil,
-    //     }
-    //   )
-    // );
-
-    // d3.select(".coils-container")
-    //   .selectAll("g")
-    //   .data(coils)
-    //   .enter()
-    //   .append("g")
-    //   .attr("transform", (d, i) => {
-    //     const { priceItems } = d;
-    //     const coilWidth = (width / totalPriceItems) * priceItems.length;
-    //     const prevCoilWidth =
-    //       i === 0
-    //         ? coilWidth
-    //         : (width / totalPriceItems) * coils[i - 1].priceItems.length;
-    //     return `translate(${i * prevCoilWidth}, 0)`;
-    //   })
-    //   .classed("coil", true)
-    //   .call(drawCoilD3, yScale);
-
     setInterval(() => {
       numberOfUpdates++;
       const newPriceItem = generator.next().value;
@@ -142,7 +114,7 @@ export default function CoilsChart() {
       d3.select("#line-chart").datum(data).attr("d", line);
 
       const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
-      // console.log(coils);
+
       enterCoils(
         coilsContainer,
         coils,
@@ -186,8 +158,7 @@ export default function CoilsChart() {
         completedCoilWidth,
         numberOfPriceItemsPerCoil
       );
-      console.log(numberOfUpdates);
-    }, 5);
+    }, 5000);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
