@@ -116,6 +116,19 @@ export default function CoilsChart() {
       .attr("fill", "transparent");
     zoomBase.call(zoom);
 
+    const area = d3
+      .area()
+      .x((d) => xScale(d.time))
+      .y0(height)
+      .y1((d) => yScale(d.price));
+
+    d3.select(".chart-container")
+      .append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("id", "chart-area")
+      .attr("d", area);
+
     setInterval(() => {
       numberOfUpdates++;
       const newPriceItem = generator.next().value;
@@ -132,6 +145,13 @@ export default function CoilsChart() {
       const yScale = createScaleLinearY(data, 0, height);
       const yAxis = createAxisLinearY(yScale);
       axisYLink.call(yAxis);
+
+      const area = d3
+        .area()
+        .x((d) => xScale(d.time))
+        .y0(height)
+        .y1((d) => yScale(d.price));
+      d3.select("#chart-area").datum(data).attr("d", area);
 
       const line = d3
         .line()

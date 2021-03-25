@@ -64,6 +64,7 @@ export const drawChart = (xScale, yScale, svg, data, margin, height, width) => {
 
   return svg
     .append("svg")
+    .classed("chart-container", true)
     .attr("width", width)
     .attr("height", height)
     .attr("transform", `translate(${margin}, ${margin})`)
