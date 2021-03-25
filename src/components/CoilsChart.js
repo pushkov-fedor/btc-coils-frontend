@@ -91,10 +91,25 @@ export default function CoilsChart() {
       numberOfPriceItemsPerCoil
     );
 
+    const area = d3
+      .area()
+      .x((d) => xScale(d.time))
+      .y0(height)
+      .y1((d) => yScale(d.price));
+
+    const areaLink = d3
+      .select(".chart-container")
+      .append("path")
+      .datum(data)
+      .attr("class", "area")
+      .attr("id", "chart-area")
+      .attr("d", area);
+
     const zoom = d3.zoom().on("zoom", zoomed);
     function zoomed() {
       const transform = d3.event.transform;
       chart.attr("transform", transform.toString());
+      areaLink.attr("transform", transform.toString());
       coilsContainer.attr("transform", transform.toString());
 
       const updatedScaleX = transform.rescaleX(xScale);
@@ -115,19 +130,6 @@ export default function CoilsChart() {
       .attr("transform", `translate(${margin}, ${margin})`)
       .attr("fill", "transparent");
     zoomBase.call(zoom);
-
-    const area = d3
-      .area()
-      .x((d) => xScale(d.time))
-      .y0(height)
-      .y1((d) => yScale(d.price));
-
-    d3.select(".chart-container")
-      .append("path")
-      .datum(data)
-      .attr("class", "area")
-      .attr("id", "chart-area")
-      .attr("d", area);
 
     setInterval(() => {
       numberOfUpdates++;

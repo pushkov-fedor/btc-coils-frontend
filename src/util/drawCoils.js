@@ -1,3 +1,5 @@
+import * as _ from "lodash";
+
 export const enterCoils = (
   coilsContainer,
   coils,
@@ -13,24 +15,15 @@ export const enterCoils = (
     .enter()
     .append("g")
     .classed("coil", true)
+    .attr("fill", (d) => {
+      const isIncreased = _.last(d).price > _.first(d).price;
+      return isIncreased ? "#4DE88C" : "#FA5330";
+    })
     .attr("transform", (_, i) => {
       return `translate(${
         i * completedCoilWidth - numberOfUpdates * xUpdateStep
       }, 0)`;
     });
-  // .append("rect")
-  // .attr("x", 0)
-  // .attr("y", 0)
-  // .attr("width", (priceItems) => {
-  //   const currentNumberOfPriceItems = priceItems.length;
-  //   const coilCurrentWidth =
-  //     (completedCoilWidth / numberOfPriceItemsPerCoil) *
-  //     currentNumberOfPriceItems;
-  //   return coilCurrentWidth;
-  // })
-  // .attr("height", height)
-  // .attr("fill", "none")
-  // .style("stroke", "black");
 };
 
 export const updateCoils = (
@@ -44,6 +37,10 @@ export const updateCoils = (
   coilsContainer
     .selectAll(".coil")
     .data(coils)
+    .attr("fill", (d) => {
+      const isIncreased = _.last(d).price > _.first(d).price;
+      return isIncreased ? "#4DE88C" : "#FA5330";
+    })
     .attr("transform", (_, i) => {
       return `translate(${
         i * completedCoilWidth - numberOfUpdates * xUpdateStep

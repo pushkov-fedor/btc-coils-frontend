@@ -148,7 +148,6 @@ export const enterCoilBoxes = (
       const { coilBoxHeight } = coilBox;
       return coilBoxHeight;
     })
-    .style("fill", "black")
     .style("opacity", (coilBox) => {
       const { opacityScale, priceItems } = coilBox;
       const numberOfPriceItemsInCoilBox = priceItems.length;

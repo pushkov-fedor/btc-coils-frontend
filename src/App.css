@@ -13,7 +13,7 @@
   stroke-width: 0;
 }
 
-body {
+#coils-chart svg {
   background-color: #6e61b6;
 }
 

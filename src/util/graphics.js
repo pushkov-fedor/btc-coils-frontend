@@ -34,34 +34,6 @@ export const drawChart = (xScale, yScale, svg, data, margin, height, width) => {
     .x((d) => xScale(d.time))
     .y((d) => yScale(d.price));
 
-  // // points on the graph
-  // svg
-  //   .append("g")
-  //   .selectAll("circle")
-  //   .data(data)
-  //   .enter()
-  //   .append("circle")
-  //   .attr("cx", (d) => xScale(d.time))
-  //   .attr("cy", (d) => yScale(d.price))
-  //   .attr("r", 2)
-  //   .attr("fill", "black")
-  //   .attr("transform", `translate(${margin}, ${margin})`);
-
-  // // vertical ligns on the points
-  // svg
-  //   .append("g")
-  //   .selectAll("line")
-  //   .data(data)
-  //   .enter()
-  //   .append("line")
-  //   .attr("x1", (d) => xScale(d.time))
-  //   .attr("y1", 0)
-  //   .attr("x2", (d) => xScale(d.time))
-  //   .attr("y2", height)
-  //   .attr("stroke", "black")
-  //   .style("opacity", 0.2)
-  //   .attr("transform", `translate(${margin}, ${margin})`);
-
   return svg
     .append("svg")
     .classed("chart-container", true)
