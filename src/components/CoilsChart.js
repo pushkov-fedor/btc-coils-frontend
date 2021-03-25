@@ -96,6 +96,14 @@ export default function CoilsChart() {
       const transform = d3.event.transform;
       chart.attr("transform", transform.toString());
       coilsContainer.attr("transform", transform.toString());
+
+      const updatedScaleX = transform.rescaleX(xScale);
+      xAxis.scale(updatedScaleX);
+      axisXLink.call(xAxis);
+
+      const updatedScaleY = transform.rescaleY(yScale);
+      yAxis.scale(updatedScaleY);
+      axisYLink.call(yAxis);
     }
 
     const zoomBase = svg
@@ -176,7 +184,7 @@ export default function CoilsChart() {
         completedCoilWidth,
         numberOfPriceItemsPerCoil
       );
-    }, 5000);
+    }, 500);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
