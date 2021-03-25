@@ -50,14 +50,15 @@ export default function CoilsChart() {
       .attr("transform", `translate(${0}, ${0})`)
       .call(yAxis);
 
-    drawChart(xScale, yScale, svg, data, margin, height, width);
+    const chart = drawChart(xScale, yScale, svg, data, margin, height, width);
 
     const coilsContainer = svg
       .append("svg")
       .classed("coils-container", true)
       .attr("width", width)
       .attr("height", height)
-      .attr("transform", `translate(${margin}, ${margin})`);
+      .attr("transform", `translate(${margin}, ${margin})`)
+      .append("g");
 
     const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
     const completedCoilWidth =
@@ -89,6 +90,23 @@ export default function CoilsChart() {
       completedCoilWidth,
       numberOfPriceItemsPerCoil
     );
+
+    const zoom = d3.zoom().on("zoom", zoomed);
+    function zoomed() {
+      const transform = d3.event.transform;
+      chart.attr("transform", transform.toString());
+      coilsContainer.attr("transform", transform.toString());
+    }
+
+    const zoomBase = svg
+      .append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", width)
+      .attr("height", height)
+      .attr("transform", `translate(${margin}, ${margin})`)
+      .attr("fill", "transparent");
+    zoomBase.call(zoom);
 
     setInterval(() => {
       numberOfUpdates++;
