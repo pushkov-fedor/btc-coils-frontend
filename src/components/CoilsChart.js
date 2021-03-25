@@ -94,7 +94,7 @@ export default function CoilsChart() {
     const area = d3
       .area()
       .x((d) => xScale(d.time))
-      .y0(height)
+      .y0(height * 100)
       .y1((d) => yScale(d.price));
 
     const areaLink = d3
@@ -151,7 +151,7 @@ export default function CoilsChart() {
       const area = d3
         .area()
         .x((d) => xScale(d.time))
-        .y0(height)
+        .y0(height * 100)
         .y1((d) => yScale(d.price));
       d3.select("#chart-area").datum(data).attr("d", area);
 
