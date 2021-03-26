@@ -8,6 +8,7 @@ import {
   createAxisTimeX,
   drawChart,
   getCoilChunks,
+  drawChartArea,
 } from "../util/graphics";
 import { enterCoils, updateCoils } from "../util/drawCoils";
 import { calcilateCoilBoxes } from "../util/calculateCoilBoxes";
@@ -91,25 +92,13 @@ export default function CoilsChart() {
       numberOfPriceItemsPerCoil
     );
 
-    const area = d3
-      .area()
-      .x((d) => xScale(d.time))
-      .y0(height * 100)
-      .y1((d) => yScale(d.price));
-
-    const areaLink = d3
-      .select(".chart-container")
-      .append("path")
-      .datum(data)
-      .attr("class", "area")
-      .attr("id", "chart-area")
-      .attr("d", area);
+    const area = drawChartArea(xScale, yScale, data, height);
 
     const zoom = d3.zoom().on("zoom", zoomed);
     function zoomed() {
       const transform = d3.event.transform;
       chart.attr("transform", transform.toString());
-      areaLink.attr("transform", transform.toString());
+      area.attr("transform", transform.toString());
       coilsContainer.attr("transform", transform.toString());
 
       const updatedScaleX = transform.rescaleX(xScale);
@@ -127,9 +116,57 @@ export default function CoilsChart() {
       .attr("y", 0)
       .attr("width", width)
       .attr("height", height)
-      .attr("transform", `translate(${margin}, ${margin})`)
-      .attr("fill", "transparent");
+      .attr("fill", "transparent")
+      .on("mouseover", drawTooltip)
+      .on("mousemove", moveTooltip)
+      .on("mouseout", removeTooltip);
     zoomBase.call(zoom);
+
+    function drawTooltip() {
+      const [mouseX, mouseY] = d3.mouse(this);
+      const date = xScale.invert(mouseX);
+      const price = yScale.invert(mouseY);
+      svg
+        .append("line")
+        .attr("id", "tooltip-vertical-line")
+        .attr("x1", mouseX)
+        .attr("x2", mouseX)
+        .attr("y1", 0)
+        .attr("y2", height)
+        .attr("stroke", "red")
+        .attr("stroke-dasharray", 4)
+        .style("pointer-events", "none");
+
+      svg
+        .append("line")
+        .attr("id", "tooltip-horizontal-line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", mouseY)
+        .attr("y2", mouseY)
+        .attr("stroke", "red")
+        .attr("stroke-dasharray", 4)
+        .style("pointer-events", "none");
+    }
+    function moveTooltip() {
+      const [mouseX, mouseY] = d3.mouse(this);
+      const date = xScale.invert(mouseX);
+      const price = yScale.invert(mouseY);
+      d3.select("#tooltip-vertical-line")
+        .attr("x1", mouseX)
+        .attr("x2", mouseX)
+        .attr("y1", 0)
+        .attr("y2", height);
+      d3.select("#tooltip-horizontal-line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", mouseY)
+        .attr("y2", mouseY);
+    }
+    function removeTooltip() {
+      d3.select("#tooltip-vertical-line").remove();
+      d3.select("#tooltip-horizontal-line").remove();
+    }
 
     setInterval(() => {
       numberOfUpdates++;

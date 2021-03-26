@@ -49,6 +49,22 @@ export const drawChart = (xScale, yScale, svg, data, margin, height, width) => {
     .attr("stroke", "green");
 };
 
+export const drawChartArea = (xScale, yScale, data, height) => {
+  const area = d3
+    .area()
+    .x((d) => xScale(d.time))
+    .y0(height * 100)
+    .y1((d) => yScale(d.price));
+
+  return d3
+    .select(".chart-container")
+    .append("path")
+    .datum(data)
+    .attr("class", "area")
+    .attr("id", "chart-area")
+    .attr("d", area);
+};
+
 export const getCoilChunks = (secondsPerCoil, data) =>
   _.chunk(data, secondsPerCoil);
 
