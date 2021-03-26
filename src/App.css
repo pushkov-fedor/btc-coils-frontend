@@ -14,7 +14,7 @@
 }
 
 #coils-chart svg {
-  background-color: #080e2d;
+  background-color: white;
 }
 
 .coil {
@@ -23,22 +23,26 @@
 
 .line {
   fill: none;
-  stroke-width: 3px;
-  stroke: #546ee5;
+  stroke-width: 2px;
+  stroke: #2196f3;
 }
 
 .area {
-  fill: rgba(255, 255, 255, 0.1);
+  fill: #d2eafc;
 }
 
 .domain {
-  stroke: rgba(255, 255, 255, 0.3);
+  stroke: #e1e1e3;
 }
 
 .tick line {
-  stroke: rgba(255, 255, 255, 0.3);
+  stroke: #e1e1e3;
 }
 
 .tick text {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+#tooltip-bottom-text {
+  font-size: 12px;
 }

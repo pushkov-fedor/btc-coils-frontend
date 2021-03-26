@@ -17,7 +17,7 @@ export const enterCoils = (
     .classed("coil", true)
     .attr("fill", (d) => {
       const isIncreased = _.last(d).price > _.first(d).price;
-      return isIncreased ? "#4DE88C" : "#FA5330";
+      return isIncreased ? "#26A69A" : "#EF5350";
     })
     .attr("transform", (_, i) => {
       return `translate(${
@@ -39,7 +39,7 @@ export const updateCoils = (
     .data(coils)
     .attr("fill", (d) => {
       const isIncreased = _.last(d).price > _.first(d).price;
-      return isIncreased ? "#4DE88C" : "#FA5330";
+      return isIncreased ? "#26A69A" : "#EF5350";
     })
     .attr("transform", (_, i) => {
       return `translate(${

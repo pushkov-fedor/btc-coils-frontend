@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import * as d3 from "d3";
+import * as moment from "moment";
 import generateBtcPrice from "../util/generateBtcPrice";
 import {
   createScaleLinearY,
@@ -38,18 +39,6 @@ export default function CoilsChart() {
 
     const yScale = createScaleLinearY(data, 0, height);
     const yAxis = createAxisLinearY(yScale);
-
-    const axisXLink = svg
-      .append("svg")
-      .attr("width", width)
-      .attr("transform", `translate(${margin}, ${0})`)
-      .append("g")
-      .attr("transform", `translate(${0}, ${height + 0})`)
-      .call(xAxis);
-    const axisYLink = svg
-      .append("g")
-      .attr("transform", `translate(${0}, ${0})`)
-      .call(yAxis);
 
     const chart = drawChart(xScale, yScale, svg, data, margin, height, width);
 
@@ -94,6 +83,18 @@ export default function CoilsChart() {
 
     const area = drawChartArea(xScale, yScale, data, height);
 
+    const axisXLink = svg
+      .append("svg")
+      .attr("width", width)
+      .attr("transform", `translate(${margin}, ${0})`)
+      .append("g")
+      .attr("transform", `translate(${0}, ${height + 0})`)
+      .call(xAxis);
+    const axisYLink = svg
+      .append("g")
+      .attr("transform", `translate(${0}, ${0})`)
+      .call(yAxis);
+
     const zoom = d3.zoom().on("zoom", zoomed);
     function zoomed() {
       const transform = d3.event.transform;
@@ -122,8 +123,11 @@ export default function CoilsChart() {
       .on("mouseout", removeTooltip);
     zoomBase.call(zoom);
 
+    let lastMouseX, lastMouseY;
     function drawTooltip() {
       const [mouseX, mouseY] = d3.mouse(this);
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
       const date = xScale.invert(mouseX);
       const price = yScale.invert(mouseY);
       svg
@@ -133,9 +137,24 @@ export default function CoilsChart() {
         .attr("x2", mouseX)
         .attr("y1", 0)
         .attr("y2", height)
-        .attr("stroke", "red")
-        .attr("stroke-dasharray", 4)
+        .attr("stroke", "rgba(0, 0, 0, 0.5)")
+        .attr("stroke-dasharray", 5)
         .style("pointer-events", "none");
+      svg
+        .append("rect")
+        .attr("id", "tooltip-bottom")
+        .attr("x", mouseX - 28)
+        .attr("y", height)
+        .attr("width", 56)
+        .attr("height", 16)
+        .style("fill", "black");
+      svg
+        .append("text")
+        .attr("id", "tooltip-bottom-text")
+        .attr("x", mouseX - 28 + 5)
+        .attr("y", height + 12)
+        .style("fill", "white")
+        .text(moment(date).format("HH:mm:ss"));
 
       svg
         .append("line")
@@ -144,12 +163,14 @@ export default function CoilsChart() {
         .attr("x2", width)
         .attr("y1", mouseY)
         .attr("y2", mouseY)
-        .attr("stroke", "red")
-        .attr("stroke-dasharray", 4)
+        .attr("stroke", "rgba(0, 0, 0, 0.5)")
+        .attr("stroke-dasharray", 5)
         .style("pointer-events", "none");
     }
     function moveTooltip() {
       const [mouseX, mouseY] = d3.mouse(this);
+      lastMouseX = mouseX;
+      lastMouseY = mouseY;
       const date = xScale.invert(mouseX);
       const price = yScale.invert(mouseY);
       d3.select("#tooltip-vertical-line")
@@ -157,6 +178,16 @@ export default function CoilsChart() {
         .attr("x2", mouseX)
         .attr("y1", 0)
         .attr("y2", height);
+      d3.select("#tooltip-bottom")
+        .attr("x", mouseX - 28)
+        .attr("y", height)
+        .style("fill", "black");
+      d3.select("#tooltip-bottom-text")
+        .attr("x", mouseX - 28 + 5)
+        .attr("y", height + 12)
+        .style("fill", "white")
+        .text(moment(date).format("HH:mm:ss"));
+
       d3.select("#tooltip-horizontal-line")
         .attr("x1", 0)
         .attr("x2", width)
@@ -164,7 +195,10 @@ export default function CoilsChart() {
         .attr("y2", mouseY);
     }
     function removeTooltip() {
+      lastMouseX = lastMouseY = undefined;
       d3.select("#tooltip-vertical-line").remove();
+      d3.select("#tooltip-bottom").remove();
+      d3.select("#tooltip-bottom-text").remove();
       d3.select("#tooltip-horizontal-line").remove();
     }
 
@@ -243,6 +277,13 @@ export default function CoilsChart() {
         completedCoilWidth,
         numberOfPriceItemsPerCoil
       );
+
+      if (lastMouseX && lastMouseY) {
+        const [mouseX, mouseY] = [lastMouseX, lastMouseY];
+        const date = xScale.invert(mouseX);
+        const price = yScale.invert(mouseY);
+        d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
+      }
     }, 500);
   }, []);
 
