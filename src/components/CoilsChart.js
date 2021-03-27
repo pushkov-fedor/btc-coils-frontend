@@ -122,6 +122,11 @@ export default function CoilsChart() {
         const date = updatedScaleX.invert(mouseX);
         const price = updatedScaleY.invert(mouseY);
         d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
+        d3.select("#tooltip-right-text").text(
+          Math.round(price)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        );
       }
     }
 
@@ -154,7 +159,7 @@ export default function CoilsChart() {
       const [mouseX, mouseY] = moveTooltipFun.call(
         this,
         xScale,
-        yScale,
+        lastTransformEvent ? lastTransformEvent.rescaleY(yScale) : yScale,
         height,
         width
       );
@@ -245,7 +250,6 @@ export default function CoilsChart() {
         const date = lastTransformEvent
           ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
           : xScale.invert(mouseX);
-        const price = yScale.invert(mouseY);
         d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
       }
     }, 1000);

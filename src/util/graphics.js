@@ -20,7 +20,7 @@ export const createAxisTimeX = (xScale) => {
   return d3
     .axisBottom()
     .scale(xScale)
-    .ticks(d3.timeSecond.every(60))
+    .ticks(10)
     .tickFormat((d) => moment(d).format("HH:mm:ss"));
 };
 
