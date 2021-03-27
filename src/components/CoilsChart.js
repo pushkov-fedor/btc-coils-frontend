@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import * as d3 from "d3";
 import * as moment from "moment";
-import generateBtcPrice from "../util/generateBtcPrice";
 import {
   createScaleLinearY,
   createScaleTimeX,
@@ -23,10 +22,7 @@ import { addDays, format, fromUnixTime } from "date-fns";
 import { BACKEND_URL } from "../constants";
 import _ from "lodash";
 
-const currentPrice = 42000;
-// const numberOfPriceItems = 300;
 const numberOfPriceItemsPerCoil = 60;
-// const [, generator] = generateBtcPrice(currentPrice, numberOfPriceItems);
 
 const endPeriod = new Date();
 const startPeriod = addDays(endPeriod, -1);
@@ -196,10 +192,8 @@ export default function CoilsChart() {
       function moveTooltip() {
         const [mouseX, mouseY] = moveTooltipFun.call(
           this,
-          lastTransformEvent ? lastTransformEvent.rescaleY(xScale) : xScale,
-          lastTransformEvent ? lastTransformEvent.rescaleY(yScale) : yScale,
-          height,
-          width
+          lastTransformEvent ? lastTransformEvent.rescaleX(xScale) : xScale,
+          lastTransformEvent ? lastTransformEvent.rescaleY(yScale) : yScale
         );
         lastMouseX = mouseX;
         lastMouseY = mouseY;
@@ -209,185 +203,101 @@ export default function CoilsChart() {
         removeTooltipFun();
       }
 
-      // setInterval(async () => {
-      //   const { response } = await fetch(
-      //     `${BACKEND_URL}core/rateData/getLastBtcPrice?` +
-      //       new URLSearchParams({
-      //         provider,
-      //       }),
-      //     options
-      //   ).then((r) => r.json());
-      //   const priceItem = parseBackendPriceItem(response);
-      //   if (_.last(data).time.getTime() == priceItem.time.getTime()) {
-      //     return;
-      //   }
+      setInterval(async () => {
+        const { response } = await fetch(
+          `${BACKEND_URL}core/rateData/getLastBtcPrice?` +
+            new URLSearchParams({
+              provider,
+            }),
+          options
+        ).then((r) => r.json());
+        const priceItem = parseBackendPriceItem(response);
+        console.log("priceItem: ", priceItem);
+        if (_.last(data).time.getTime() === priceItem.time.getTime()) {
+          return;
+        }
 
-      //   data.push(priceItem);
+        data.push(priceItem);
 
-      //   xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
-      //   if (lastTransformEvent) {
-      //     const updatedScaleX = lastTransformEvent.rescaleX(xScale);
-      //     xAxis.scale(updatedScaleX);
-      //   } else {
-      //     xAxis.scale(xScale);
-      //   }
-      //   axisXLink.call(xAxis);
+        xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
+        if (lastTransformEvent) {
+          const updatedScaleX = lastTransformEvent.rescaleX(xScale);
+          xAxis.scale(updatedScaleX);
+        } else {
+          xAxis.scale(xScale);
+        }
+        axisXLink.call(xAxis);
 
-      //   const area = d3
-      //     .area()
-      //     .x((d) => xScale(d.time))
-      //     .y0(height * 100)
-      //     .y1((d) => yScale(d.price));
-      //   d3.select("#chart-area").datum(data).attr("d", area);
+        const area = d3
+          .area()
+          .x((d) => xScale(d.time))
+          .y0(height * 100)
+          .y1((d) => yScale(d.price));
+        d3.select("#chart-area").datum(data).attr("d", area);
 
-      //   const line = d3
-      //     .line()
-      //     .x((d) => xScale(d.time))
-      //     .y((d) => yScale(d.price));
-      //   d3.select("#line-chart").datum(data).attr("d", line);
+        const line = d3
+          .line()
+          .x((d) => xScale(d.time))
+          .y((d) => yScale(d.price));
+        d3.select("#line-chart").datum(data).attr("d", line);
 
-      //   const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
+        const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
 
-      //   enterCoils(
-      //     coilsContainer,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfUpdates,
-      //     xUpdateStep,
-      //     numberOfPriceItemsPerCoil,
-      //     height
-      //   );
-      //   updateCoils(
-      //     coilsContainer,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfUpdates,
-      //     xUpdateStep,
-      //     numberOfPriceItemsPerCoil
-      //   );
-      //   const coilBoxesCoilsArray = coils
-      //     .map((priceItemsPerCoil) => {
-      //       const coilBoxes = calcilateCoilBoxes(
-      //         priceItemsPerCoil,
-      //         numberOfCoilBoxes
-      //       );
-      //       return coilBoxes;
-      //     })
-      //     .filter((cbc) => cbc.length > 0);
+        enterCoils(
+          coilsContainer,
+          coils,
+          completedCoilWidth,
+          numberOfUpdates,
+          xUpdateStep,
+          numberOfPriceItemsPerCoil,
+          height
+        );
+        updateCoils(
+          coilsContainer,
+          coils,
+          completedCoilWidth,
+          numberOfUpdates,
+          xUpdateStep,
+          numberOfPriceItemsPerCoil
+        );
+        const coilBoxesCoilsArray = coils
+          .map((priceItemsPerCoil) => {
+            const coilBoxes = calcilateCoilBoxes(
+              priceItemsPerCoil,
+              numberOfCoilBoxes
+            );
+            return coilBoxes;
+          })
+          .filter((cbc) => cbc.length > 0);
 
-      //   enterCoilBoxes(
-      //     coilBoxesCoilsArray,
-      //     yScale,
-      //     numberOfCoilBoxes,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfPriceItemsPerCoil
-      //   );
-      //   updateCoilBoxes(
-      //     coilBoxesCoilsArray,
-      //     yScale,
-      //     numberOfCoilBoxes,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfPriceItemsPerCoil
-      //   );
+        enterCoilBoxes(
+          coilBoxesCoilsArray,
+          yScale,
+          numberOfCoilBoxes,
+          coils,
+          completedCoilWidth,
+          numberOfPriceItemsPerCoil
+        );
+        updateCoilBoxes(
+          coilBoxesCoilsArray,
+          yScale,
+          numberOfCoilBoxes,
+          coils,
+          completedCoilWidth,
+          numberOfPriceItemsPerCoil
+        );
 
-      //   if (lastMouseX && lastMouseY) {
-      //     const [mouseX, mouseY] = [lastMouseX, lastMouseY];
+        if (lastMouseX && lastMouseY) {
+          const mouseX = lastMouseX;
 
-      //     const date = lastTransformEvent
-      //       ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
-      //       : xScale.invert(mouseX);
-      //     d3.select("#tooltip-bottom-text").text(
-      //       moment(date).format("HH:mm:ss")
-      //     );
-      //   }
-      // }, 1000);
-
-      // setInterval(() => {
-      //   numberOfUpdates++;
-      //   const newPriceItem = generator.next().value;
-      // data.push(newPriceItem);
-
-      // xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
-      // if (lastTransformEvent) {
-      //   const updatedScaleX = lastTransformEvent.rescaleX(xScale);
-      //   xAxis.scale(updatedScaleX);
-      // } else {
-      //   xAxis.scale(xScale);
-      // }
-      // axisXLink.call(xAxis);
-
-      // const area = d3
-      //   .area()
-      //   .x((d) => xScale(d.time))
-      //   .y0(height * 100)
-      //   .y1((d) => yScale(d.price));
-      // d3.select("#chart-area").datum(data).attr("d", area);
-
-      // const line = d3
-      //   .line()
-      //   .x((d) => xScale(d.time))
-      //   .y((d) => yScale(d.price));
-      // d3.select("#line-chart").datum(data).attr("d", line);
-
-      // const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
-
-      // enterCoils(
-      //   coilsContainer,
-      //   coils,
-      //   completedCoilWidth,
-      //   numberOfUpdates,
-      //   xUpdateStep,
-      //   numberOfPriceItemsPerCoil,
-      //   height
-      // );
-      // updateCoils(
-      //   coilsContainer,
-      //   coils,
-      //   completedCoilWidth,
-      //   numberOfUpdates,
-      //   xUpdateStep,
-      //   numberOfPriceItemsPerCoil
-      // );
-      // const coilBoxesCoilsArray = coils
-      //   .map((priceItemsPerCoil) => {
-      //     const coilBoxes = calcilateCoilBoxes(
-      //       priceItemsPerCoil,
-      //       numberOfCoilBoxes
-      //     );
-      //     return coilBoxes;
-      //   })
-      //   .filter((cbc) => cbc.length > 0);
-
-      // enterCoilBoxes(
-      //   coilBoxesCoilsArray,
-      //   yScale,
-      //   numberOfCoilBoxes,
-      //   coils,
-      //   completedCoilWidth,
-      //   numberOfPriceItemsPerCoil
-      // );
-      // updateCoilBoxes(
-      //   coilBoxesCoilsArray,
-      //   yScale,
-      //   numberOfCoilBoxes,
-      //   coils,
-      //   completedCoilWidth,
-      //   numberOfPriceItemsPerCoil
-      // );
-
-      // if (lastMouseX && lastMouseY) {
-      //   const [mouseX, mouseY] = [lastMouseX, lastMouseY];
-
-      //   const date = lastTransformEvent
-      //     ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
-      //     : xScale.invert(mouseX);
-      //   d3.select("#tooltip-bottom-text").text(
-      //     moment(date).format("HH:mm:ss")
-      //   );
-      // }
-      // }, 1000);
+          const date = lastTransformEvent
+            ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
+            : xScale.invert(mouseX);
+          d3.select("#tooltip-bottom-text").text(
+            moment(date).format("HH:mm:ss")
+          );
+        }
+      }, 1000);
     }
 
     initApp();

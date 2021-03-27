@@ -63,7 +63,7 @@ export function drawTooltip(xScale, yScale, svg, height, width) {
   return [mouseX, mouseY];
 }
 
-export function moveTooltip(xScale, yScale, height, width) {
+export function moveTooltip(xScale, yScale) {
   const [mouseX, mouseY] = d3.mouse(this);
   const date = xScale.invert(mouseX);
   const price = yScale.invert(mouseY);
