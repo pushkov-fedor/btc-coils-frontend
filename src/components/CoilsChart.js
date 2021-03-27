@@ -101,8 +101,10 @@ export default function CoilsChart() {
       .call(yAxis);
 
     const zoom = d3.zoom().on("zoom", zoomed);
+    let lastTransformEvent;
     function zoomed() {
       const transform = d3.event.transform;
+      lastTransformEvent = transform;
       chart.attr("transform", transform.toString());
       area.attr("transform", transform.toString());
       coilsContainer.attr("transform", transform.toString());
@@ -170,12 +172,13 @@ export default function CoilsChart() {
       data.push(newPriceItem);
 
       xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
-      const xAxis = createAxisTimeX(xScale);
+      if (lastTransformEvent) {
+        const updatedScaleX = lastTransformEvent.rescaleX(xScale);
+        xAxis.scale(updatedScaleX);
+      } else {
+        xAxis.scale(xScale);
+      }
       axisXLink.call(xAxis);
-
-      yScale = createScaleLinearY(data, 0, height);
-      const yAxis = createAxisLinearY(yScale);
-      axisYLink.call(yAxis);
 
       const area = d3
         .area()
@@ -238,7 +241,10 @@ export default function CoilsChart() {
 
       if (lastMouseX && lastMouseY) {
         const [mouseX, mouseY] = [lastMouseX, lastMouseY];
-        const date = xScale.invert(mouseX);
+
+        const date = lastTransformEvent
+          ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
+          : xScale.invert(mouseX);
         const price = yScale.invert(mouseY);
         d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
       }
