@@ -67,32 +67,17 @@ export function moveTooltip(xScale, yScale, height, width) {
   const [mouseX, mouseY] = d3.mouse(this);
   const date = xScale.invert(mouseX);
   const price = yScale.invert(mouseY);
-  d3.select("#tooltip-vertical-line")
-    .attr("x1", mouseX)
-    .attr("x2", mouseX)
-    .attr("y1", 0)
-    .attr("y2", height);
+  d3.select("#tooltip-vertical-line").attr("x1", mouseX).attr("x2", mouseX);
   d3.select("#tooltip-bottom")
     .attr("x", mouseX - 28)
-    .attr("y", height)
     .style("fill", "black");
   d3.select("#tooltip-bottom-text")
     .attr("x", mouseX - 28 + 5)
-    .attr("y", height + 12)
-    .style("fill", "white")
     .text(moment(date).format("HH:mm:ss"));
 
-  d3.select("#tooltip-horizontal-line")
-    .attr("x1", 0)
-    .attr("x2", width)
-    .attr("y1", mouseY)
-    .attr("y2", mouseY);
-  d3.select("#tooltip-right")
-    .attr("x", width)
-    .attr("y", mouseY - 8)
-    .style("fill", "black");
+  d3.select("#tooltip-horizontal-line").attr("y1", mouseY).attr("y2", mouseY);
+  d3.select("#tooltip-right").attr("y", mouseY - 8);
   d3.select("#tooltip-right-text")
-    .attr("x", width + 5)
     .attr("y", mouseY + 4)
     .text(
       Math.round(price)
