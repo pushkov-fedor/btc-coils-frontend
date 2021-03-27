@@ -43,6 +43,7 @@
   color: rgba(0, 0, 0, 0.8);
 }
 
-#tooltip-bottom-text {
+#tooltip-bottom-text,
+#tooltip-right-text {
   font-size: 12px;
 }

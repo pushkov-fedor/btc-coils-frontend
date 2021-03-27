@@ -41,6 +41,25 @@ export function drawTooltip(xScale, yScale, svg, height, width) {
     .attr("stroke", "rgba(0, 0, 0, 0.5)")
     .attr("stroke-dasharray", 5)
     .style("pointer-events", "none");
+  svg
+    .append("rect")
+    .attr("id", "tooltip-right")
+    .attr("x", width)
+    .attr("y", mouseY - 8)
+    .attr("width", 44)
+    .attr("height", 16)
+    .style("fill", "black");
+  svg
+    .append("text")
+    .attr("id", "tooltip-right-text")
+    .attr("x", width + 5)
+    .attr("y", mouseY + 4)
+    .style("fill", "white")
+    .text(
+      Math.round(price)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+    );
   return [mouseX, mouseY];
 }
 
@@ -68,6 +87,18 @@ export function moveTooltip(xScale, yScale, height, width) {
     .attr("x2", width)
     .attr("y1", mouseY)
     .attr("y2", mouseY);
+  d3.select("#tooltip-right")
+    .attr("x", width)
+    .attr("y", mouseY - 8)
+    .style("fill", "black");
+  d3.select("#tooltip-right-text")
+    .attr("x", width + 5)
+    .attr("y", mouseY + 4)
+    .text(
+      Math.round(price)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+    );
   return [mouseX, mouseY];
 }
 
@@ -75,5 +106,7 @@ export const removeTooltip = () => {
   d3.select("#tooltip-vertical-line").remove();
   d3.select("#tooltip-bottom").remove();
   d3.select("#tooltip-bottom-text").remove();
+  d3.select("#tooltip-right").remove();
+  d3.select("#tooltip-right-text").remove();
   d3.select("#tooltip-horizontal-line").remove();
 };
