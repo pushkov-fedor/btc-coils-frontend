@@ -14,6 +14,11 @@ import {
 import { enterCoils, updateCoils } from "../util/drawCoils";
 import { calcilateCoilBoxes } from "../util/calculateCoilBoxes";
 import { enterCoilBoxes, updateCoilBoxes } from "../util/drawCoilBoxes";
+import {
+  drawTooltip as drawTooltipFun,
+  moveTooltip as moveTooltipFun,
+  removeTooltip as removeTooltipFun,
+} from "../util/drawTooltip";
 
 const currentPrice = 42000;
 const numberOfPriceItems = 300;
@@ -34,10 +39,10 @@ export default function CoilsChart() {
       .append("g")
       .attr("transform", `translate(${margin}, ${margin})`);
 
-    const xScale = createScaleTimeX(data, 0, width);
+    let xScale = createScaleTimeX(data, 0, width);
     const xAxis = createAxisTimeX(xScale);
 
-    const yScale = createScaleLinearY(data, 0, height);
+    let yScale = createScaleLinearY(data, 0, height);
     const yAxis = createAxisLinearY(yScale);
 
     const chart = drawChart(xScale, yScale, svg, data, margin, height, width);
@@ -109,6 +114,13 @@ export default function CoilsChart() {
       const updatedScaleY = transform.rescaleY(yScale);
       yAxis.scale(updatedScaleY);
       axisYLink.call(yAxis);
+
+      if (lastMouseX && lastMouseY) {
+        const [mouseX, mouseY] = [lastMouseX, lastMouseY];
+        const date = updatedScaleX.invert(mouseX);
+        const price = updatedScaleY.invert(mouseY);
+        d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
+      }
     }
 
     const zoomBase = svg
@@ -125,81 +137,31 @@ export default function CoilsChart() {
 
     let lastMouseX, lastMouseY;
     function drawTooltip() {
-      const [mouseX, mouseY] = d3.mouse(this);
+      const [mouseX, mouseY] = drawTooltipFun.call(
+        this,
+        xScale,
+        yScale,
+        svg,
+        height,
+        width
+      );
       lastMouseX = mouseX;
       lastMouseY = mouseY;
-      const date = xScale.invert(mouseX);
-      const price = yScale.invert(mouseY);
-      svg
-        .append("line")
-        .attr("id", "tooltip-vertical-line")
-        .attr("x1", mouseX)
-        .attr("x2", mouseX)
-        .attr("y1", 0)
-        .attr("y2", height)
-        .attr("stroke", "rgba(0, 0, 0, 0.5)")
-        .attr("stroke-dasharray", 5)
-        .style("pointer-events", "none");
-      svg
-        .append("rect")
-        .attr("id", "tooltip-bottom")
-        .attr("x", mouseX - 28)
-        .attr("y", height)
-        .attr("width", 56)
-        .attr("height", 16)
-        .style("fill", "black");
-      svg
-        .append("text")
-        .attr("id", "tooltip-bottom-text")
-        .attr("x", mouseX - 28 + 5)
-        .attr("y", height + 12)
-        .style("fill", "white")
-        .text(moment(date).format("HH:mm:ss"));
-
-      svg
-        .append("line")
-        .attr("id", "tooltip-horizontal-line")
-        .attr("x1", 0)
-        .attr("x2", width)
-        .attr("y1", mouseY)
-        .attr("y2", mouseY)
-        .attr("stroke", "rgba(0, 0, 0, 0.5)")
-        .attr("stroke-dasharray", 5)
-        .style("pointer-events", "none");
     }
     function moveTooltip() {
-      const [mouseX, mouseY] = d3.mouse(this);
+      const [mouseX, mouseY] = moveTooltipFun.call(
+        this,
+        xScale,
+        yScale,
+        height,
+        width
+      );
       lastMouseX = mouseX;
       lastMouseY = mouseY;
-      const date = xScale.invert(mouseX);
-      const price = yScale.invert(mouseY);
-      d3.select("#tooltip-vertical-line")
-        .attr("x1", mouseX)
-        .attr("x2", mouseX)
-        .attr("y1", 0)
-        .attr("y2", height);
-      d3.select("#tooltip-bottom")
-        .attr("x", mouseX - 28)
-        .attr("y", height)
-        .style("fill", "black");
-      d3.select("#tooltip-bottom-text")
-        .attr("x", mouseX - 28 + 5)
-        .attr("y", height + 12)
-        .style("fill", "white")
-        .text(moment(date).format("HH:mm:ss"));
-
-      d3.select("#tooltip-horizontal-line")
-        .attr("x1", 0)
-        .attr("x2", width)
-        .attr("y1", mouseY)
-        .attr("y2", mouseY);
     }
     function removeTooltip() {
       lastMouseX = lastMouseY = undefined;
-      d3.select("#tooltip-vertical-line").remove();
-      d3.select("#tooltip-bottom").remove();
-      d3.select("#tooltip-bottom-text").remove();
-      d3.select("#tooltip-horizontal-line").remove();
+      removeTooltipFun();
     }
 
     setInterval(() => {
@@ -207,15 +169,11 @@ export default function CoilsChart() {
       const newPriceItem = generator.next().value;
       data.push(newPriceItem);
 
-      const xScale = createScaleTimeX(
-        data,
-        -numberOfUpdates * xUpdateStep,
-        width
-      );
+      xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
       const xAxis = createAxisTimeX(xScale);
       axisXLink.call(xAxis);
 
-      const yScale = createScaleLinearY(data, 0, height);
+      yScale = createScaleLinearY(data, 0, height);
       const yAxis = createAxisLinearY(yScale);
       axisYLink.call(yAxis);
 
@@ -284,7 +242,7 @@ export default function CoilsChart() {
         const price = yScale.invert(mouseY);
         d3.select("#tooltip-bottom-text").text(moment(date).format("HH:mm:ss"));
       }
-    }, 500);
+    }, 1000);
   }, []);
 
   return <div id="coils-chart" style={{ height: "100vh" }}></div>;
