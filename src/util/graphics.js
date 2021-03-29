@@ -4,11 +4,17 @@ import _ from "lodash";
 import isEqual from "date-fns/isEqual";
 import isBefore from "date-fns/isBefore";
 import { addSeconds, isAfter } from "date-fns";
+import addMinutes from "date-fns/addMinutes";
 
-export const createScaleTimeX = (data, startRange, endRange) => {
+export const createScaleTimeX = (timeframeInSeconds, startRange, endRange) => {
+  const currentDateEnd = new Date();
+  const currentDateStart = addSeconds(
+    new Date(currentDateEnd.getTime()),
+    -timeframeInSeconds
+  );
   return d3
     .scaleTime()
-    .domain([d3.min(data, (d) => d.time), d3.max(data, (d) => d.time)])
+    .domain([currentDateStart, currentDateEnd])
     .range([startRange, endRange]);
 };
 

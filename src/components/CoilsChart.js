@@ -36,7 +36,8 @@ const parseBackendPriceItem = (priceItem) => ({
   time: fromUnixTime(priceItem.timestamp),
 });
 
-const SECOND_PER_COIL = 60;
+const SECOND_PER_COIL = 120;
+const TIMEFRAME_IN_SECONDS = 30 * 60;
 
 export default function CoilsChart() {
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function CoilsChart() {
         .append("g")
         .attr("transform", `translate(${margin}, ${margin})`);
 
-      let xScale = createScaleTimeX(data, 0, width);
+      let xScale = createScaleTimeX(TIMEFRAME_IN_SECONDS, 0, width);
       const xAxis = createAxisTimeX(xScale);
 
       let yScale = createScaleLinearY(data, 0, height);
@@ -99,7 +100,8 @@ export default function CoilsChart() {
         .append("g");
 
       const coils = getCoilChunks(SECOND_PER_COIL, data);
-      const completedCoilWidth = (width / numberOfPriceItems) * coils[0].length;
+      const completedCoilWidth =
+        (width / TIMEFRAME_IN_SECONDS) * SECOND_PER_COIL;
       enterCoils(
         coilsContainer,
         coils,
@@ -118,14 +120,15 @@ export default function CoilsChart() {
           return coilBoxes;
         })
         .filter((coilBox) => coilBox.length > 0);
+      console.log("coilBoxesCoilsArray: ", coilBoxesCoilsArray);
 
       enterCoilBoxes(
         coilBoxesCoilsArray,
+        xScale,
         yScale,
         numberOfCoilBoxes,
         coils,
-        completedCoilWidth,
-        coils[0].length
+        completedCoilWidth
       );
 
       const area = drawChartArea(xScale, yScale, data, height);
@@ -229,7 +232,7 @@ export default function CoilsChart() {
 
       //   data.push(priceItem);
 
-      //   xScale = createScaleTimeX(data, -numberOfUpdates * xUpdateStep, width);
+      //   xScale = createScaleTimeX(-numberOfUpdates * xUpdateStep, width);
       //   if (lastTransformEvent) {
       //     const updatedScaleX = lastTransformEvent.rescaleX(xScale);
       //     xAxis.scale(updatedScaleX);

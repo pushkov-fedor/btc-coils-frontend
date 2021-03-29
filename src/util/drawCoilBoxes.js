@@ -78,11 +78,11 @@ export const updateCoilBoxes = (
 
 export const enterCoilBoxes = (
   coilBoxesCoilsArray,
+  xScale,
   yScale,
   numberOfCoilBoxes,
   coils,
-  completedCoilWidth,
-  numberOfPriceItemsPerCoil
+  completedCoilWidth
 ) => {
   d3.selectAll(".coil")
     .data(coilBoxesCoilsArray)
@@ -94,6 +94,8 @@ export const enterCoilBoxes = (
       );
       const minPrice = coilBoxes[0].startPrice;
       const maxPrice = coilBoxes[coilBoxes.length - 1].endPrice;
+      const startTime = coilBoxes[0].startTime;
+      const priceItemsInCoil = coilBoxes[0].priceItemsInCoil;
       const coilHeight = yScale(minPrice) - yScale(maxPrice);
       const coilBoxHeight = coilHeight / numberOfCoilBoxes;
 
@@ -101,12 +103,15 @@ export const enterCoilBoxes = (
         .scaleLinear()
         .domain([0, maxNumberOfPriceItemsInCoilBox])
         .range([0.2, 1]);
+
       return coilBoxes.map((coilBox) =>
         Object.assign({}, coilBox, {
           maxNumberOfPriceItemsInCoilBox,
           coilBoxHeight,
           coilIndex: i,
           opacityScale,
+          startTime,
+          priceItemsInCoil,
         })
       );
     })
@@ -117,15 +122,17 @@ export const enterCoilBoxes = (
       const { coilIndex, priceItems, maxNumberOfPriceItemsInCoilBox } = coilBox;
       const currentNumberOfPriceItems = coils[coilIndex].length;
       const coilCurrentWidth =
-        (completedCoilWidth / numberOfPriceItemsPerCoil) *
+        (completedCoilWidth / coilBox.priceItemsInCoil) *
         currentNumberOfPriceItems;
 
       const halfBoxWidth = coilCurrentWidth / 2;
       const numberOfPriceItemsInCoilBox = priceItems.length;
+
       return (
-        halfBoxWidth -
-        (halfBoxWidth * numberOfPriceItemsInCoilBox) /
-          maxNumberOfPriceItemsInCoilBox
+        xScale(coilBox.startTime) +
+        (halfBoxWidth -
+          (halfBoxWidth * numberOfPriceItemsInCoilBox) /
+            maxNumberOfPriceItemsInCoilBox)
       );
     })
     .attr("y", (coilBox) => {
@@ -135,7 +142,7 @@ export const enterCoilBoxes = (
       const { coilIndex, maxNumberOfPriceItemsInCoilBox } = coilBox;
       const currentNumberOfPriceItems = coils[coilIndex].length;
       const coilCurrentWidth =
-        (completedCoilWidth / numberOfPriceItemsPerCoil) *
+        (completedCoilWidth / coilBox.priceItemsInCoil) *
         currentNumberOfPriceItems;
 
       const numberOfPriceItemsInCoilBox = coilBox.priceItems.length;

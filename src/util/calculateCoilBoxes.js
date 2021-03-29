@@ -22,6 +22,7 @@ export const calcilateCoilBoxes = (data, numberOfCoilBoxes) => {
   const coilBoxStep = +((maxPrice - minPrice) / numberOfCoilBoxes).toFixed(1);
   const coilBoxes = [];
 
+  const startTime = _.first(data).time;
   for (
     let i = minPrice;
     i < maxPrice - (maxPrice - minPrice) / 100;
@@ -31,6 +32,8 @@ export const calcilateCoilBoxes = (data, numberOfCoilBoxes) => {
       startPrice: i,
       endPrice: +(i + coilBoxStep).toFixed(1),
       priceItems: [],
+      startTime,
+      priceItemsInCoil: data.length,
     });
   }
 

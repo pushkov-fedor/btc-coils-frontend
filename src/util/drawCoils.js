@@ -16,11 +16,6 @@ export const enterCoils = (
     .attr("fill", (d) => {
       const isIncreased = _.last(d).price > _.first(d).price;
       return isIncreased ? "#26A69A" : "#EF5350";
-    })
-    .attr("transform", (_, i) => {
-      return `translate(${
-        i * completedCoilWidth - numberOfUpdates * xUpdateStep
-      }, 0)`;
     });
 };
 
@@ -29,8 +24,7 @@ export const updateCoils = (
   coils,
   completedCoilWidth,
   numberOfUpdates,
-  xUpdateStep,
-  numberOfPriceItemsPerCoil
+  xUpdateStep
 ) => {
   coilsContainer
     .selectAll(".coil")
