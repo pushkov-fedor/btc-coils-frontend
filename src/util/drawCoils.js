@@ -1,12 +1,6 @@
 import * as _ from "lodash";
 
-export const enterCoils = (
-  coilsContainer,
-  coils,
-  completedCoilWidth,
-  numberOfUpdates,
-  xUpdateStep
-) => {
+export const enterCoils = (coilsContainer, coils) => {
   coilsContainer
     .selectAll("g")
     .data(coils)
@@ -19,24 +13,13 @@ export const enterCoils = (
     });
 };
 
-export const updateCoils = (
-  coilsContainer,
-  coils,
-  completedCoilWidth,
-  numberOfUpdates,
-  xUpdateStep
-) => {
+export const updateCoils = (coilsContainer, coils) => {
   coilsContainer
     .selectAll(".coil")
     .data(coils)
     .attr("fill", (d) => {
       const isIncreased = _.last(d).price > _.first(d).price;
       return isIncreased ? "#26A69A" : "#EF5350";
-    })
-    .attr("transform", (_, i) => {
-      return `translate(${
-        i * completedCoilWidth - numberOfUpdates * xUpdateStep
-      }, 0)`;
     });
   // .select("rect")
   // .attr("width", (priceItems) => {

@@ -68,7 +68,6 @@ export default function CoilsChart() {
           (priceItem, i, arr) =>
             i === 0 || !isEqual(priceItem.time, arr[i - 1].time)
         );
-      const numberOfPriceItems = data.length;
 
       const margin = 50;
       const width = 1200 - 2 * margin;
@@ -216,101 +215,86 @@ export default function CoilsChart() {
         removeTooltipFun();
       }
 
-      // setInterval(async () => {
-      //   const { response } = await fetch(
-      //     `${BACKEND_URL}core/rateData/getLastBtcPrice?` +
-      //       new URLSearchParams({
-      //         provider,
-      //       }),
-      //     options
-      //   ).then((r) => r.json());
-      //   const priceItem = parseBackendPriceItem(response);
-      //   console.log("priceItem: ", priceItem);
-      //   if (_.last(data).time.getTime() === priceItem.time.getTime()) {
-      //     return;
-      //   }
+      setInterval(async () => {
+        const { response } = await fetch(
+          `${BACKEND_URL}core/rateData/getLastBtcPrice?` +
+            new URLSearchParams({
+              provider,
+            }),
+          options
+        ).then((r) => r.json());
+        const priceItem = parseBackendPriceItem(response);
+        console.log("priceItem: ", priceItem);
+        if (_.last(data).time.getTime() === priceItem.time.getTime()) {
+          return;
+        }
 
-      //   data.push(priceItem);
+        data.push(priceItem);
 
-      //   xScale = createScaleTimeX(-numberOfUpdates * xUpdateStep, width);
-      //   if (lastTransformEvent) {
-      //     const updatedScaleX = lastTransformEvent.rescaleX(xScale);
-      //     xAxis.scale(updatedScaleX);
-      //   } else {
-      //     xAxis.scale(xScale);
-      //   }
-      //   axisXLink.call(xAxis);
+        xScale = createScaleTimeX(TIMEFRAME_IN_SECONDS, 0, width);
+        if (lastTransformEvent) {
+          const updatedScaleX = lastTransformEvent.rescaleX(xScale);
+          xAxis.scale(updatedScaleX);
+        } else {
+          xAxis.scale(xScale);
+        }
+        axisXLink.call(xAxis);
 
-      //   const area = d3
-      //     .area()
-      //     .x((d) => xScale(d.time))
-      //     .y0(height * 100)
-      //     .y1((d) => yScale(d.price));
-      //   d3.select("#chart-area").datum(data).attr("d", area);
+        const area = d3
+          .area()
+          .x((d) => xScale(d.time))
+          .y0(height * 100)
+          .y1((d) => yScale(d.price));
+        d3.select("#chart-area").datum(data).attr("d", area);
 
-      //   const line = d3
-      //     .line()
-      //     .x((d) => xScale(d.time))
-      //     .y((d) => yScale(d.price));
-      //   d3.select("#line-chart").datum(data).attr("d", line);
+        const line = d3
+          .line()
+          .x((d) => xScale(d.time))
+          .y((d) => yScale(d.price));
+        d3.select("#line-chart").datum(data).attr("d", line);
 
-      //   const coils = getCoilChunks(numberOfPriceItemsPerCoil, data);
+        const coils = getCoilChunks(SECOND_PER_COIL, data);
 
-      //   enterCoils(
-      //     coilsContainer,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfUpdates,
-      //     xUpdateStep,
-      //     numberOfPriceItemsPerCoil,
-      //     height
-      //   );
-      //   updateCoils(
-      //     coilsContainer,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfUpdates,
-      //     xUpdateStep,
-      //     numberOfPriceItemsPerCoil
-      //   );
-      //   const coilBoxesCoilsArray = coils
-      //     .map((priceItemsPerCoil) => {
-      //       const coilBoxes = calcilateCoilBoxes(
-      //         priceItemsPerCoil,
-      //         numberOfCoilBoxes
-      //       );
-      //       return coilBoxes;
-      //     })
-      //     .filter((cbc) => cbc.length > 0);
+        enterCoils(coilsContainer, coils);
+        updateCoils(coilsContainer, coils);
+        const coilBoxesCoilsArray = coils
+          .map((priceItemsPerCoil) => {
+            const coilBoxes = calcilateCoilBoxes(
+              priceItemsPerCoil,
+              numberOfCoilBoxes
+            );
+            return coilBoxes;
+          })
+          .filter((cbc) => cbc.length > 0);
 
-      //   enterCoilBoxes(
-      //     coilBoxesCoilsArray,
-      //     yScale,
-      //     numberOfCoilBoxes,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfPriceItemsPerCoil
-      //   );
-      //   updateCoilBoxes(
-      //     coilBoxesCoilsArray,
-      //     yScale,
-      //     numberOfCoilBoxes,
-      //     coils,
-      //     completedCoilWidth,
-      //     numberOfPriceItemsPerCoil
-      //   );
+        enterCoilBoxes(
+          coilBoxesCoilsArray,
+          xScale,
+          yScale,
+          numberOfCoilBoxes,
+          coils,
+          completedCoilWidth
+        );
+        updateCoilBoxes(
+          coilBoxesCoilsArray,
+          xScale,
+          yScale,
+          numberOfCoilBoxes,
+          coils,
+          completedCoilWidth
+        );
 
-      //   if (lastMouseX && lastMouseY) {
-      //     const mouseX = lastMouseX;
+        if (lastMouseX && lastMouseY) {
+          const mouseX = lastMouseX;
 
-      //     const date = lastTransformEvent
-      //       ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
-      //       : xScale.invert(mouseX);
-      //     d3.select("#tooltip-bottom-text").text(
-      //       moment(date).format("HH:mm:ss")
-      //     );
-      //   }
-      // }, 1000);
+          const date = lastTransformEvent
+            ? lastTransformEvent.rescaleX(xScale).invert(mouseX)
+            : xScale.invert(mouseX);
+          d3.select("#tooltip-bottom-text").text(
+            moment(date).format("HH:mm:ss")
+          );
+        }
+      }, 1000);
     }
 
     initApp();
