@@ -95,8 +95,14 @@ export const getCoilChunks = (secondsPerCoil, data) => {
     );
     chunks.push(chunk);
   }
-  console.log("chunks: ", chunks);
-  return chunks;
+  const lastChunk = _.last(chunks);
+  const minChunkSizeExcludedLast = d3.min(
+    _.slice(chunks, 0, -1),
+    (chunk) => chunk.length
+  );
+  return lastChunk.length === minChunkSizeExcludedLast
+    ? chunks
+    : _.slice(chunks, 0, -1);
 };
 
 export const drawCoilD3 = (coilsSelection, yScale) => {

@@ -36,7 +36,7 @@ const parseBackendPriceItem = (priceItem) => ({
   time: fromUnixTime(priceItem.timestamp),
 });
 
-const SECOND_PER_COIL = 120;
+const SECOND_PER_COIL = 60;
 const TIMEFRAME_IN_SECONDS = 30 * 60;
 
 export default function CoilsChart() {
@@ -72,8 +72,7 @@ export default function CoilsChart() {
       const margin = 50;
       const width = 1200 - 2 * margin;
       const height = 650 - 2 * margin;
-      const xUpdateStep = width / data.length;
-      let numberOfUpdates = 0;
+
       const svg = d3
         .select("#coils-chart")
         .append("svg")
@@ -101,13 +100,7 @@ export default function CoilsChart() {
       const coils = getCoilChunks(SECOND_PER_COIL, data);
       const completedCoilWidth =
         (width / TIMEFRAME_IN_SECONDS) * SECOND_PER_COIL;
-      enterCoils(
-        coilsContainer,
-        coils,
-        completedCoilWidth,
-        numberOfUpdates,
-        xUpdateStep
-      );
+      enterCoils(coilsContainer, coils);
 
       const numberOfCoilBoxes = 25;
       const coilBoxesCoilsArray = coils
@@ -119,7 +112,6 @@ export default function CoilsChart() {
           return coilBoxes;
         })
         .filter((coilBox) => coilBox.length > 0);
-      console.log("coilBoxesCoilsArray: ", coilBoxesCoilsArray);
 
       enterCoilBoxes(
         coilBoxesCoilsArray,
@@ -224,7 +216,6 @@ export default function CoilsChart() {
           options
         ).then((r) => r.json());
         const priceItem = parseBackendPriceItem(response);
-        console.log("priceItem: ", priceItem);
         if (_.last(data).time.getTime() === priceItem.time.getTime()) {
           return;
         }
