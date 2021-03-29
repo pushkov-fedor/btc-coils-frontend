@@ -1,6 +1,9 @@
 import * as d3 from "d3";
 import moment from "moment";
 import _ from "lodash";
+import isEqual from "date-fns/isEqual";
+import isBefore from "date-fns/isBefore";
+import { addSeconds, isAfter } from "date-fns";
 
 export const createScaleTimeX = (data, startRange, endRange) => {
   return d3
@@ -65,8 +68,30 @@ export const drawChartArea = (xScale, yScale, data, height) => {
     .attr("d", area);
 };
 
-export const getCoilChunks = (secondsPerCoil, data) =>
-  _.chunk(data, secondsPerCoil);
+export const getCoilChunks = (secondsPerCoil, data) => {
+  const startTime = _.first(data).time;
+  const endTime = _.last(data).time;
+  const chunks = [];
+  for (
+    let timeframeStart = startTime;
+    isEqual(timeframeStart, endTime) || isBefore(timeframeStart, endTime);
+    timeframeStart = addSeconds(timeframeStart, secondsPerCoil)
+  ) {
+    const timeframeEnd = addSeconds(
+      new Date(timeframeStart.getTime()),
+      secondsPerCoil
+    );
+    const chunk = data.filter(
+      (priceItem) =>
+        (isEqual(priceItem.time, timeframeStart) ||
+          isAfter(priceItem.time, timeframeStart)) &&
+        isBefore(priceItem.time, timeframeEnd)
+    );
+    chunks.push(chunk);
+  }
+  console.log("chunks: ", chunks);
+  return chunks;
+};
 
 export const drawCoilD3 = (coilsSelection, yScale) => {
   coilsSelection

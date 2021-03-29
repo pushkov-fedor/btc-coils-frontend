@@ -5,9 +5,7 @@ export const enterCoils = (
   coils,
   completedCoilWidth,
   numberOfUpdates,
-  xUpdateStep,
-  numberOfPriceItemsPerCoil,
-  height
+  xUpdateStep
 ) => {
   coilsContainer
     .selectAll("g")
