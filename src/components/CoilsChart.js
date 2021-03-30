@@ -22,10 +22,16 @@ import { addHours, format, fromUnixTime } from "date-fns";
 import { BACKEND_URL } from "../constants";
 import _ from "lodash";
 import isEqual from "date-fns/isEqual";
+import addMinutes from "date-fns/addMinutes";
+import isBefore from "date-fns/isBefore";
 
-const endPeriod = new Date();
-const startPeriod = addHours(endPeriod, -4);
+const timezoneOffset = new Date().getTimezoneOffset();
+
+let endPeriod = addMinutes(new Date(), timezoneOffset);
+let startPeriod = addHours(endPeriod, -1);
 const provider = "bitstamp";
+
+let canFetchBeforeData = true;
 
 const formatDate = (date) => {
   return format(date, "dd.MM.yy HH:mm:ss");
@@ -56,19 +62,17 @@ export default function CoilsChart() {
           }),
         options
       ).then((r) => r.json());
-
       if (!response) {
         console.log("Empty response from backend");
         return;
       }
 
-      const data = response
+      let data = response
         .map(parseBackendPriceItem)
         .filter(
           (priceItem, i, arr) =>
             i === 0 || !isEqual(priceItem.time, arr[i - 1].time)
         );
-
       const margin = 50;
       const width = 1200 - 2 * margin;
       const height = 650 - 2 * margin;
@@ -138,7 +142,7 @@ export default function CoilsChart() {
 
       const zoom = d3.zoom().on("zoom", zoomed);
       let lastTransformEvent;
-      function zoomed() {
+      async function zoomed() {
         const transform = d3.event.transform;
         lastTransformEvent = transform;
         chart.attr("transform", transform.toString());
@@ -146,6 +150,7 @@ export default function CoilsChart() {
         coilsContainer.attr("transform", transform.toString());
 
         const updatedScaleX = transform.rescaleX(xScale);
+        const [startDateDisplayed] = updatedScaleX.domain();
         xAxis.scale(updatedScaleX);
         axisXLink.call(xAxis);
 
@@ -164,6 +169,85 @@ export default function CoilsChart() {
             Math.round(price)
               .toString()
               .replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          );
+        }
+        if (
+          isBefore(
+            addMinutes(startDateDisplayed, timezoneOffset),
+            startPeriod
+          ) &&
+          canFetchBeforeData
+        ) {
+          canFetchBeforeData = false;
+          startPeriod = addHours(startPeriod, -1);
+          endPeriod = addHours(endPeriod, -1);
+
+          const { response } = await fetch(
+            `${BACKEND_URL}core/rateData/getBtcPriceForPeriod?` +
+              new URLSearchParams({
+                provider,
+                startPeriod: formatDate(startPeriod),
+                endPeriod: formatDate(endPeriod),
+              }),
+            options
+          ).then((r) => r.json());
+          canFetchBeforeData = true;
+          if (!response) {
+            console.log("Empty response from backend");
+            return;
+          }
+
+          const fetchedData = response
+            .map(parseBackendPriceItem)
+            .filter(
+              (priceItem, i, arr) =>
+                i === 0 || !isEqual(priceItem.time, arr[i - 1].time)
+            );
+
+          data = [...fetchedData, ...data];
+          console.log("data: ", data);
+          const area = d3
+            .area()
+            .x((d) => xScale(d.time))
+            .y0(height * 100)
+            .y1((d) => yScale(d.price));
+          d3.select("#chart-area").datum(data).attr("d", area);
+
+          const line = d3
+            .line()
+            .x((d) => xScale(d.time))
+            .y((d) => yScale(d.price));
+          d3.select("#line-chart").datum(data).attr("d", line);
+
+          const coils = getCoilChunks(SECOND_PER_COIL, data);
+
+          enterCoils(coilsContainer, coils);
+          updateCoils(coilsContainer, coils);
+          const coilBoxesCoilsArray = coils
+            .map((priceItemsPerCoil) => {
+              const coilBoxes = calcilateCoilBoxes(
+                priceItemsPerCoil,
+                numberOfCoilBoxes
+              );
+              return coilBoxes;
+            })
+            .filter((cbc) => cbc.length > 0);
+
+          enterCoilBoxes(
+            coilBoxesCoilsArray,
+            xScale,
+            yScale,
+            numberOfCoilBoxes,
+            coils,
+            completedCoilWidth
+          );
+          updateCoilBoxes(
+            coilBoxesCoilsArray,
+            xScale,
+            yScale,
+            numberOfCoilBoxes,
+            coils,
+            completedCoilWidth
           );
         }
       }
