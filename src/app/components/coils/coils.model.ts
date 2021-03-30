@@ -5,7 +5,7 @@ export interface PriceItemDto {
 }
 
 export interface SpringBackendResponseBase<T> {
-  response: T;
+  response?: T;
 }
 
 export interface PriceItem {

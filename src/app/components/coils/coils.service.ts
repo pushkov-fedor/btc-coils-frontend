@@ -3,13 +3,18 @@ import { HttpClient } from '@angular/common/http';
 import { BACKEND_URL } from 'src/app/constants';
 import { format } from 'date-fns';
 import { PriceItemDto, SpringBackendResponseBase } from './coils.model';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class CoilsService {
   constructor(private http: HttpClient) {}
 
-  loadPriceItemsByPeriod(provider: string, startPeriod: Date, endPeriod: Date) {
-    return this.http.get<SpringBackendResponseBase<PriceItemDto[] | {}>>(
+  loadPriceItemsByPeriod(
+    provider: string,
+    startPeriod: Date,
+    endPeriod: Date
+  ): Observable<SpringBackendResponseBase<PriceItemDto[]>> {
+    return this.http.get<SpringBackendResponseBase<PriceItemDto[]> | {}>(
       `${BACKEND_URL}core/rateData/getBtcPriceForPeriod`,
       {
         params: {
