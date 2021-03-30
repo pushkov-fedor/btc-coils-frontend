@@ -27,6 +27,7 @@ export class CoilsComponent implements OnInit {
   data: PriceItem[] = [];
 
   svg;
+  coilsContainer;
 
   xScale;
   yScale;
@@ -72,6 +73,21 @@ export class CoilsComponent implements OnInit {
     this.yAxis = this._d3Service.createAxisLinearY(this.yScale);
 
     this.chartLink = this.drawChart();
+
+    this.coilsContainer = this.svg
+      .append('svg')
+      .classed('coils-container', true)
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('transform', `translate(${this.margin}, ${this.margin})`)
+      .append('g');
+
+    const coils = this._coilsService.getCoilChunks(
+      this.SECOND_PER_COIL,
+      this.data
+    );
+    const completedCoilWidth =
+      (this.width / this.TIMEFRAME_IN_SECONDS) * this.SECOND_PER_COIL;
 
     this.axisXLink = this.drawAxisX();
     this.axisYLink = this.drawAxisY();
