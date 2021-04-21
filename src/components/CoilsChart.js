@@ -26,12 +26,11 @@ import addMinutes from "date-fns/addMinutes";
 import isBefore from "date-fns/isBefore";
 
 const timezoneOffset = new Date().getTimezoneOffset();
-
 let endPeriod = addMinutes(new Date(), timezoneOffset);
 let startPeriod = addHours(endPeriod, -1);
 const provider = "bitstamp";
 
-let canFetchBeforeData = true;
+let canFetchPastData = true;
 
 const formatDate = (date) => {
   return format(date, "dd.MM.yy HH:mm:ss");
@@ -42,7 +41,7 @@ const parseBackendPriceItem = (priceItem) => ({
   time: fromUnixTime(priceItem.timestamp),
 });
 
-const SECOND_PER_COIL = 60;
+const SECOND_PER_COIL = 180;
 const TIMEFRAME_IN_SECONDS = 30 * 60;
 
 export default function CoilsChart() {
@@ -176,9 +175,9 @@ export default function CoilsChart() {
             addMinutes(startDateDisplayed, timezoneOffset),
             startPeriod
           ) &&
-          canFetchBeforeData
+          canFetchPastData
         ) {
-          canFetchBeforeData = false;
+          canFetchPastData = false;
           startPeriod = addHours(startPeriod, -1);
           endPeriod = addHours(endPeriod, -1);
 
@@ -191,7 +190,7 @@ export default function CoilsChart() {
               }),
             options
           ).then((r) => r.json());
-          canFetchBeforeData = true;
+          canFetchPastData = true;
           if (!response) {
             console.log("Empty response from backend");
             return;
