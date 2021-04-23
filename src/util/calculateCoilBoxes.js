@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import _ from "lodash";
 
 export const calcilateCoilBoxes = (data, numberOfCoilBoxes) => {
-  const scaler = 5;
+  const scaler = 4;
   const scaledData = data
     .map((d, i, arr) => {
       if (i !== arr.length - 1) {
@@ -23,6 +23,7 @@ export const calcilateCoilBoxes = (data, numberOfCoilBoxes) => {
   const coilBoxes = [];
 
   const startTime = _.first(data).time;
+  const endTime = _.last(data).time;
   for (
     let i = minPrice;
     i < maxPrice - (maxPrice - minPrice) / 100;
@@ -33,6 +34,7 @@ export const calcilateCoilBoxes = (data, numberOfCoilBoxes) => {
       endPrice: +(i + coilBoxStep).toFixed(1),
       priceItems: [],
       startTime,
+      endTime,
       priceItemsInCoil: data.length,
     });
   }

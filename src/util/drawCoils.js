@@ -1,5 +1,9 @@
 import * as _ from "lodash";
 
+export const exitCoils = (coilsContainer, coils) => {
+  coilsContainer.selectAll("g").data(coils).exit().remove();
+};
+
 export const enterCoils = (coilsContainer, coils) => {
   coilsContainer
     .selectAll("g")

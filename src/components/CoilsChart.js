@@ -10,7 +10,7 @@ import {
   getCoilChunks,
   drawChartArea,
 } from "../util/graphics";
-import { enterCoils, updateCoils } from "../util/drawCoils";
+import { enterCoils, updateCoils, exitCoils } from "../util/drawCoils";
 import { calcilateCoilBoxes } from "../util/calculateCoilBoxes";
 import { enterCoilBoxes, updateCoilBoxes } from "../util/drawCoilBoxes";
 import {
@@ -41,7 +41,8 @@ const parseBackendPriceItem = (priceItem) => ({
   time: fromUnixTime(priceItem.timestamp),
 });
 
-const SECOND_PER_COIL = 180;
+const ORIGINAL_SECOND_PER_COIL = 180;
+let SECOND_PER_COIL = ORIGINAL_SECOND_PER_COIL;
 const TIMEFRAME_IN_SECONDS = 30 * 60;
 
 export default function CoilsChart() {
@@ -101,8 +102,6 @@ export default function CoilsChart() {
         .append("g");
 
       const coils = getCoilChunks(SECOND_PER_COIL, data);
-      const completedCoilWidth =
-        (width / TIMEFRAME_IN_SECONDS) * SECOND_PER_COIL;
       enterCoils(coilsContainer, coils);
 
       const numberOfCoilBoxes = 25;
@@ -121,8 +120,7 @@ export default function CoilsChart() {
         xScale,
         yScale,
         numberOfCoilBoxes,
-        coils,
-        completedCoilWidth
+        coils
       );
 
       const area = drawChartArea(xScale, yScale, data, height);
@@ -144,6 +142,7 @@ export default function CoilsChart() {
       async function zoomed() {
         const transform = d3.event.transform;
         lastTransformEvent = transform;
+        SECOND_PER_COIL = ORIGINAL_SECOND_PER_COIL / transform.k;
         chart.attr("transform", transform.toString());
         area.attr("transform", transform.toString());
         coilsContainer.attr("transform", transform.toString());
@@ -156,6 +155,36 @@ export default function CoilsChart() {
         const updatedScaleY = transform.rescaleY(yScale);
         yAxis.scale(updatedScaleY);
         axisYLink.call(yAxis);
+
+        const coils = getCoilChunks(SECOND_PER_COIL, data);
+
+        enterCoils(coilsContainer, coils);
+        exitCoils(coilsContainer, coils);
+        updateCoils(coilsContainer, coils);
+        const coilBoxesCoilsArray = coils
+          .map((priceItemsPerCoil) => {
+            const coilBoxes = calcilateCoilBoxes(
+              priceItemsPerCoil,
+              numberOfCoilBoxes
+            );
+            return coilBoxes;
+          })
+          .filter((cbc) => cbc.length > 0);
+
+        enterCoilBoxes(
+          coilBoxesCoilsArray,
+          xScale,
+          yScale,
+          numberOfCoilBoxes,
+          coils
+        );
+        updateCoilBoxes(
+          coilBoxesCoilsArray,
+          xScale,
+          yScale,
+          numberOfCoilBoxes,
+          coils
+        );
 
         if (lastMouseX && lastMouseY) {
           const [mouseX, mouseY] = [lastMouseX, lastMouseY];
@@ -237,16 +266,14 @@ export default function CoilsChart() {
             xScale,
             yScale,
             numberOfCoilBoxes,
-            coils,
-            completedCoilWidth
+            coils
           );
           updateCoilBoxes(
             coilBoxesCoilsArray,
             xScale,
             yScale,
             numberOfCoilBoxes,
-            coils,
-            completedCoilWidth
+            coils
           );
         }
       }
@@ -346,16 +373,14 @@ export default function CoilsChart() {
           xScale,
           yScale,
           numberOfCoilBoxes,
-          coils,
-          completedCoilWidth
+          coils
         );
         updateCoilBoxes(
           coilBoxesCoilsArray,
           xScale,
           yScale,
           numberOfCoilBoxes,
-          coils,
-          completedCoilWidth
+          coils
         );
 
         if (lastMouseX && lastMouseY) {
