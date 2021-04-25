@@ -74,7 +74,7 @@ export const drawChartArea = (xScale, yScale, data, height) => {
     .attr("d", area);
 };
 
-export const getCoilChunks = (secondsPerCoil, data) => {
+export const getCoilChunks = _.memoize((secondsPerCoil, data) => {
   const startTime = _.first(data).time;
   const endTime = _.last(data).time;
   const chunks = [];
@@ -96,7 +96,7 @@ export const getCoilChunks = (secondsPerCoil, data) => {
     chunks.push(chunk);
   }
   return chunks;
-};
+}, (secondsPerCoil, data) => `${secondsPerCoil}|${_.first(data).time.getTime()}|${_.last(data).time.getTime()}`);
 
 export const drawCoilD3 = (coilsSelection, yScale) => {
   coilsSelection

@@ -25,12 +25,4 @@ export const updateCoils = (coilsContainer, coils) => {
       const isIncreased = _.last(d).price > _.first(d).price;
       return isIncreased ? "#26A69A" : "#EF5350";
     });
-  // .select("rect")
-  // .attr("width", (priceItems) => {
-  //   const currentNumberOfPriceItems = priceItems.length;
-  //   const coilCurrentWidth =
-  //     (completedCoilWidth / numberOfPriceItemsPerCoil) *
-  //     currentNumberOfPriceItems;
-  //   return coilCurrentWidth;
-  // });
 };
